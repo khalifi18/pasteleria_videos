@@ -1,0 +1,12 @@
+{
+  "_nota": "firma = nombre de la cuenta que sale en el vídeo. voice_id = su voz de ElevenLabs. La clave de ElevenLabs va en la variable de entorno ELEVENLABS_API_KEY, nunca aquí.",
+  "firma": "@tu_cuenta",
+  "cierre": "Guárdala para hacerla este finde",
+  "voz": {
+    "voice_id": "PEGAR_AQUI_EL_VOICE_ID",
+    "model_id": "eleven_v4",
+    "stability": 0.5,
+    "similarity_boost": 0.75,
+    "speed": 1.0
+  }
+}

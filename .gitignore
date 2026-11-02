@@ -1,0 +1,14 @@
+node_modules/
+motor/public/
+motor/.catalogo/
+videos/*/out/
+videos/*/clips/
+videos/*/mis-clips/
+videos/*/clips.json
+videos/*/audio.mp3
+.env
+catalogo.jpg
+motor/fuentes/
+.entorno
+motor/package-lock.json
+.remotion/
