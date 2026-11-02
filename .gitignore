@@ -12,3 +12,5 @@ motor/fuentes/
 .entorno
 motor/package-lock.json
 .remotion/
+videos/*/words.json
+videos/*/voz.json
