@@ -9,6 +9,8 @@ import {COLORES, ELEMENTOS} from './dibujos/elementos';
 import {Estrella8Fondo} from './dibujos/fondo';
 import {ThreeCanvas} from '@remotion/three';
 import {MUNDOS} from './mundos';
+import {MundoCocina} from './cocina/Mundo';
+import type {DatosCocina} from './cocina/estado';
 import type {Tramo} from './mundos/camara';
 
 // Formatos:
@@ -16,7 +18,7 @@ import type {Tramo} from './mundos/camara';
 //  hikma    → fondo de color + elemento dibujado, POV arriba, frase grande en el centro
 //  leccion  → un clip de vídeo por frase, subtítulos abajo
 //  pov      → 1–2 clips de fondo para todo el vídeo, POV arriba, frase grande en el centro
-export type Modo = 'historia' | 'hikma' | 'leccion' | 'pov';
+export type Modo = 'historia' | 'hikma' | 'leccion' | 'pov' | 'cocina';
 
 export type Linea = {
   es: string; // frase en español
@@ -47,6 +49,7 @@ export type VideoProps = {
   mundo?: string | null; // historia en 3D: nombre de MUNDOS
   tramos?: Tramo[]; // historia en 3D: a qué plano va la cámara y cuándo
   idioma?: 'es' | 'darija';
+  cocina?: DatosCocina; // formato cocina: acciones, ingredientes y piezas de la mesa
   firma: string;
   cierre: string;
   finVoz: number;
@@ -186,12 +189,24 @@ export const Video: React.FC<VideoProps> = (p) => {
   const arabeE = la.arabe ? easeOut(prog(frame, Math.round(la.ini * fps) - 4, 14)) : 0;
   const centro = centrado(modo);
   // En las tarjetas (ingredientes o frase grande) el texto ya está en pantalla: sin subtítulo
-  const plAhora = modo === 'leccion' ? p.planos.find((pl, i) => frame >= pl.a && (i === p.planos.length - 1 || frame < p.planos[i + 1].a)) : undefined;
+  const plAhora = modo === 'leccion' || modo === 'cocina' ? p.planos.find((pl, i) => frame >= pl.a && (modo === 'cocina' ? frame < pl.b : i === p.planos.length - 1 || frame < p.planos[i + 1].a)) : undefined;
   const enTarjeta = !!plAhora && !plAhora.clip && !plAhora.escena && (plAhora.li === undefined || plAhora.li === actual);
 
   return (
     <AbsoluteFill style={{backgroundColor: C.noche, overflow: 'hidden'}}>
-      {modo === 'hikma' ? (
+      {modo === 'cocina' && p.cocina ? (
+        <>
+          <MundoCocina d={p.cocina} />
+          {p.planos.map((pl, i) => {
+            const op = Math.min(prog(frame, pl.a, 10), 1 - prog(frame, pl.b - 10, 10));
+            return (
+              <Sequence key={i} from={pl.a} durationInFrames={pl.b - pl.a}>
+                <Plano pl={pl} d={pl.b - pl.a} opacidad={op} />
+              </Sequence>
+            );
+          })}
+        </>
+      ) : modo === 'hikma' ? (
         <FondoHikma color={p.color} elemento={p.elemento} frame={frame} ocultar={arabeE} />
       ) : modo === 'historia' && p.mundo && MUNDOS[p.mundo] ? (
         <Mundo3D nombre={p.mundo} tramos={p.tramos ?? []} />
@@ -206,7 +221,7 @@ export const Video: React.FC<VideoProps> = (p) => {
           );
         })
       )}
-      <Velo modo={modo} />
+      {modo !== 'cocina' && <Velo modo={modo} />}
 
       {centro && p.pov && <Pov texto={p.pov} frame={frame} />}
 
@@ -216,11 +231,13 @@ export const Video: React.FC<VideoProps> = (p) => {
         </div>
       )}
 
-      {!p.portada && frame < finVozF + 6 && !enTarjeta && <Subtitulo es={la.es} ini={la.ini} fin={la.fin} frame={frame} fps={fps} centro={centro} />}
+      {!p.portada && frame < finVozF + 6 && !enTarjeta && <Subtitulo es={la.es} ini={la.ini} fin={la.fin} frame={frame} fps={fps} centro={centro} arriba={modo === 'cocina'} />}
 
-      <div style={{position: 'absolute', top: 150, width: W, textAlign: 'center', fontFamily: sans, fontWeight: 700, fontSize: 30, letterSpacing: 2, color: C.tenue}}>
-        {p.firma}
-      </div>
+      {modo !== 'cocina' && (
+        <div style={{position: 'absolute', top: 150, width: W, textAlign: 'center', fontFamily: sans, fontWeight: 700, fontSize: 30, letterSpacing: 2, color: C.tenue}}>
+          {p.firma}
+        </div>
+      )}
 
       {p.portada && (
         <div style={{position: 'absolute', top: centro ? 760 : 1060, left: 90, right: 90, height: centro ? 420 : undefined, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', fontFamily: sans, fontWeight: 800, fontSize: 84, lineHeight: 1.15, color: C.crema, textShadow: '0 4px 30px rgba(0,0,0,0.9)'}}>

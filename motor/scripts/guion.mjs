@@ -12,6 +12,7 @@
 //            [texto]             tarjeta con una frase grande (el truco, la cantidad clave)
 //            [=]                 sigue el mismo clip
 //   truco  → # pov: …  # color: …  # elemento: …   y líneas sin corchetes (frase grande en el centro)
+//   cocina → [accion objeto opciones] frase   (mundo dibujado de la cocina; ver guias/cocina.md)
 //   historia → [escena] frase      (dibujos 2D a medida; ver guias/historia.md)
 //
 // FORMATO POV con vídeo de fondo:
@@ -59,6 +60,7 @@ export function leerGuion(dir) {
         l = m[2];
       }
     }
+    if (formato === 'cocina' && !busqueda) busqueda = 'sigue';
     if (formato === 'leccion') {
       if (!busqueda) busqueda = ambiente[n++ % ambiente.length];
       if (busqueda === '=' && !lineas.length) busqueda = ambiente[n++ % ambiente.length];
@@ -80,6 +82,7 @@ export function leerGuion(dir) {
   lineas.nombre = nombre;
   lineas.idioma = idioma;
   lineas.ingredientes = ingredientes;
+  lineas.mesa = lista(cab('mesa'));
   lineas.fondo = formato === 'pov' ? fondo : null;
   lineas.pov = pov;
   lineas.color = cab('color');

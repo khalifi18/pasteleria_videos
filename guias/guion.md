@@ -5,7 +5,11 @@ Una receta en vídeo funciona cuando en 2 segundos se ve **el resultado** (da ga
 **fácil de hacer** (da confianza). La gente la guarda para hacerla y la manda a quien le gusta ese dulce.
 Guardados y vídeos vistos hasta el final es lo que más hace crecer la cuenta.
 
-## Formato receta
+## Formato cocina (el principal)
+La receta contada en una cocina dibujada con la cámara viajando: todo en `guias/cocina.md`.
+La estructura de abajo (gancho → ingredientes → pasos → truco → resultado + pregunta) vale igual.
+
+## Formato receta (con sus vídeos)
 ```
 # receta: bizcocho de yogur
 # formato: receta

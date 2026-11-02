@@ -15,16 +15,18 @@ voice_id, díselo con estas palabras: "falta configurar la voz; pídele a Ayoub 
 ## 1 · Qué vídeo hacer
 | Formato | Cuándo | Cabecera del guion |
 |---|---|---|
-| **receta** (el principal) | enseñar a hacer un dulce paso a paso | `# formato: receta` · `# ingredientes: …; …` |
+| **cocina** (el principal) | enseñar una receta paso a paso: cocina dibujada y cámara que viaja | `# formato: cocina` · `# ingredientes: …; …` — lee SIEMPRE `guias/cocina.md` |
+| **receta** | cuando ella tiene vídeos de casi todos los pasos | `# formato: receta` · `# ingredientes: …; …` |
 | **truco** | un error común o un consejo rápido | `# formato: truco` · `# pov: POV: …` · `# color: chocolate` · `# elemento: bizcocho` |
 | **historia** | el origen de un dulce (máx. 1 por semana) | `# formato: historia` — lee `guias/historia.md` |
 
+- En **cocina**, si ella manda vídeos suyos, úsalos con `[mio …]` sobre todo al final (el dulce real cortado).
 - Colores truco: chocolate, vainilla, fresa, pistacho, terracota, arena, rosa, ciruela, noche, verde, azul.
   Elementos: bizcocho, magdalena, batidor, huevo, te, corazon, estrella, hoja, luna, vela.
 - **Idioma**: pregúntale si no lo dice: `# idioma: es` (una frase por línea) o `# idioma: darija`
   (`darija | español`; reglas de darija en `guias/guion.md`). Los subtítulos siempre salen en español.
 
-## 2 · Sus vídeos (receta)
+## 2 · Sus vídeos (receta y final de cocina)
 Lo mejor es que la receta se vea con **sus propias manos**. Pídele que grabe y te mande clips cortos de cada paso
 (cómo grabarlos: `guias/grabar.md`, pásale ese consejo en 3–4 líneas si es la primera vez).
 - Copia los vídeos que te mande a `videos/<slug>/mis-clips/` con nombres en orden: `01-huevos.mp4`, `02-batir.mp4`…
@@ -36,6 +38,7 @@ Lo mejor es que la receta se vea con **sus propias manos**. Pídele que grabe y 
 
 ## 3 · Guion → `videos/<slug>/guion.txt`
 `node motor/scripts/nuevo.mjs videos/<slug>` crea la plantilla. Lee `guias/guion.md`. Lo esencial:
+- Cocina: 12–16 líneas, 35–45 s, una acción por frase (`guias/cocina.md`).
 - Receta: **30–45 s**, 6–9 líneas. Estructura: dulce terminado (gancho) → `[ingredientes]` → pasos → `[texto]` truco → resultado + pregunta.
 - Las cantidades, temperaturas y tiempos salen de ella: no los inventes.
 - **Enséñale el guion (y el plano de cada línea) y espera su OK.**
@@ -45,11 +48,12 @@ Lo mejor es que la receta se vea con **sus propias manos**. Pídele que grabe y 
 Solo cuesta si cambia el texto hablado.
 
 ## 5 · Imágenes y montaje
-- `node motor/scripts/stock.mjs videos/<slug>` (solo descarga los pasos que no son `[mio]`; `--otro N` cambia el clip N).
+- Solo formato receta: `node motor/scripts/stock.mjs videos/<slug>` (descarga los pasos que no son `[mio]`; `--otro N` cambia el clip N).
 - `node motor/scripts/render.mjs videos/<slug> --hoja` → abre `out/hoja.jpg` con Read y revisa: se ve el paso que se dice,
   nada cortado, textos legibles, ingredientes completos.
 - `node motor/scripts/render.mjs videos/<slug>` → `out/video.mp4` + `out/portada.jpg`.
-  Si la máquina es lenta: `--rango 0-299`, `--rango 300-599`… y une las partes con ffmpeg concat.
+  Si la máquina es lenta (en la nube suele serlo): `bash motor/scripts/render-por-tramos.sh videos/<slug>` monta en paralelo y une.
+  Un vídeo de cocina de 40 s puede tardar 30–60 min: avísale de que tardará.
 
 ## 6 · Entrega
 Escribe `out/texto-del-post.txt`:

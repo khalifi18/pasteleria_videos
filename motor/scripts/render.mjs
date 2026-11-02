@@ -69,6 +69,34 @@ const preparar = (archivo, seg, nombre, ini = 0) => {
   return `clips/${slug}/${nombre}.mp4`;
 };
 
+const clips = cjson.lineas || [];
+const md = path.join(dir, 'mis-clips');
+const misClips = fs.existsSync(md) ? fs.readdirSync(md).filter((f) => /\.(mp4|mov|m4v|webm)$/i.test(f)).sort() : [];
+let usadosMios = 0;
+function plano(li, a, b) {
+  const l = lineas[li];
+  const seg = ((b - a) / FPS + 0.4).toFixed(2);
+  const nom = String(li).padStart(2, '0');
+  if (l.busqueda === 'texto') return {texto: l.es.replace(/\*/g, ''), arabe: /[\u0600-\u06FF]/.test(l.texto) ? l.texto : null, clip: null, a, b};
+  if (l.busqueda === 'ingredientes') {
+    if (!lineas.ingredientes.length) fallo('falta la cabecera "# ingredientes: …; …" para la tarjeta [ingredientes]');
+    return {texto: '', ingredientes: lineas.ingredientes, clip: null, a, b};
+  }
+  if (l.busqueda.startsWith('mio')) {
+    // vídeo propio: [mio] = el siguiente por orden; [mio nombre.mp4 12] = ese, desde el segundo 12
+    const [, nombreMio, desdeSeg] = l.busqueda.split(/\s+/);
+    let f = nombreMio;
+    if (!f) {
+      f = misClips[usadosMios++];
+      if (!f) fallo(`línea ${li + 1}: no quedan vídeos en mis-clips/ (hay ${misClips.length})`);
+    } else if (!misClips.includes(f)) fallo(`línea ${li + 1}: no existe mis-clips/${f}`);
+    return {texto: '', a, b, clip: preparar(path.join(dir, 'mis-clips', f), seg, nom, parseFloat(desdeSeg) || 0)};
+  }
+  const c = clips[li]?.clip;
+  if (!c || clips[li].busqueda !== l.busqueda) fallo(`línea ${li + 1} sin clip: ejecuta stock.mjs`);
+  return {texto: l.texto, a, b, clip: preparar(c.archivo, seg, nom)};
+}
+
 let planos;
 if (modo === 'hikma') {
   planos = [];
@@ -93,12 +121,18 @@ if (modo === 'hikma') {
     const b = k === n - 1 ? durF : Math.round(((k + 1) * durF) / n) + 12;
     return {texto: '', a, b, clip: preparar(f.clip.archivo, ((b - a) / FPS + 0.4).toFixed(2), `fondo-${k}`)};
   });
+} else if (modo === 'cocina') {
+  // Mundo dibujado de la cocina: la cámara viaja por él. Encima solo van sus vídeos [mio] y las tarjetas [texto].
+  planos = [];
+  lineas.forEach((l, i) => {
+    if (l.busqueda === 'texto' || l.busqueda.startsWith('mio')) {
+      let j = i;
+      while (j + 1 < lineas.length && lineas[j + 1].busqueda === '=') j++;
+      planos.push({li: i, ...plano(i, desde(i), hasta(j))});
+    }
+  });
 } else {
   // Formato clips: uno por línea; [=] alarga el plano anterior
-  const clips = cjson.lineas || [];
-  const md = path.join(dir, 'mis-clips');
-  const misClips = fs.existsSync(md) ? fs.readdirSync(md).filter((f) => /\.(mp4|mov|m4v|webm)$/i.test(f)).sort() : [];
-  let usadosMios = 0;
   const planosLineas = [];
   lineas.forEach((l, i) => {
     if (l.busqueda === '=' && planosLineas.length) planosLineas[planosLineas.length - 1].hasta = i;
@@ -108,29 +142,6 @@ if (modo === 'hikma') {
     const a = desde(li), b = hasta(lf);
     return {li, ...plano(li, a, b)};
   });
-  function plano(li, a, b) {
-    const l = lineas[li];
-    const seg = ((b - a) / FPS + 0.4).toFixed(2);
-    const nom = String(li).padStart(2, '0');
-    if (l.busqueda === 'texto') return {texto: l.es.replace(/\*/g, ''), arabe: /[\u0600-\u06FF]/.test(l.texto) ? l.texto : null, clip: null, a, b};
-    if (l.busqueda === 'ingredientes') {
-      if (!lineas.ingredientes.length) fallo('falta la cabecera "# ingredientes: …; …" para la tarjeta [ingredientes]');
-      return {texto: '', ingredientes: lineas.ingredientes, clip: null, a, b};
-    }
-    if (l.busqueda.startsWith('mio')) {
-      // vídeo propio: [mio] = el siguiente por orden; [mio nombre.mp4 12] = ese, desde el segundo 12
-      const [, nombreMio, desdeSeg] = l.busqueda.split(/\s+/);
-      let f = nombreMio;
-      if (!f) {
-        f = misClips[usadosMios++];
-        if (!f) fallo(`línea ${li + 1}: no quedan vídeos en mis-clips/ (hay ${misClips.length})`);
-      } else if (!misClips.includes(f)) fallo(`línea ${li + 1}: no existe mis-clips/${f}`);
-      return {texto: '', a, b, clip: preparar(path.join(dir, 'mis-clips', f), seg, nom, parseFloat(desdeSeg) || 0)};
-    }
-    const c = clips[li]?.clip;
-    if (!c || clips[li].busqueda !== l.busqueda) fallo(`línea ${li + 1} sin clip: ejecuta stock.mjs`);
-    return {texto: l.texto, a, b, clip: preparar(c.archivo, seg, nom)};
-  }
 }
 const lineasProps = lineas.map((l, i) => ({
   es: l.es,
@@ -140,6 +151,39 @@ const lineasProps = lineas.map((l, i) => ({
 }));
 
 const props = {audio: null, modo, idioma: lineas.idioma, firma: cfg.firma, cierre: cfg.cierre, finVoz, duracion, lineas: lineasProps, planos, pov: pov || modo === 'hikma' ? lineas.pov || '' : null, color: lineas.color, elemento: lineas.elemento};
+if (modo === 'cocina') {
+  // ingrediente escrito de muchas formas → pieza dibujada (igual que piezaDe en src/cocina/estado.ts)
+  const piezaDe = (txt) => {
+    const t = txt.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const reglas = [[/huevo/, 'huevos'], [/harina|maicena/, 'harina'], [/cacao/, 'cacao'], [/chocolate/, 'chocolate'], [/azucar/, 'azucar'], [/yogur/, 'yogur'], [/aceite/, 'aceite'], [/leche|nata/, 'leche'], [/levadura|polvo de hornear|royal|gasificante/, 'levadura'], [/mantequilla|margarina/, 'mantequilla'], [/limon|naranja/, 'limon']];
+    for (const [re, k] of reglas) if (re.test(t)) return k;
+    return null;
+  };
+  const VERBOS = ['general', 'mesa', 'ingredientes', 'ver', 'echar', 'batir', 'mezclar', 'verter', 'hornear', 'esperar', 'sacar', 'corte', 'cortar', 'decorar', 'mio', 'texto', 'sigue', '='];
+  const acciones = lineas.map((l, i) => {
+    const toks = (l.busqueda || 'sigue').split(/\s+/);
+    let verbo = toks[0], obj = null, opts = toks.slice(1);
+    if (verbo === '=') verbo = 'sigue';
+    if (!VERBOS.includes(verbo)) {
+      const k = piezaDe(verbo);
+      if (!k) fallo(`línea ${i + 1}: no conozco la acción [${l.busqueda}] (mira guias/cocina.md)`);
+      verbo = 'echar';
+      obj = k;
+    } else if (['echar', 'ver'].includes(verbo)) {
+      obj = piezaDe(opts.join(' ')) || null;
+      if (!obj) fallo(`línea ${i + 1}: [${l.busqueda}] necesita un ingrediente que exista (huevos, harina, azucar, yogur, aceite, leche, levadura, mantequilla, chocolate, cacao, limon)`);
+      opts = [];
+    } else if (verbo === 'decorar') obj = opts[0] || 'azucar';
+    return {verbo, obj, opts, ini: tiempos[i].ini, fin: tiempos[i].fin, li: i};
+  });
+  const mesa = [];
+  const pon = (k) => k && !mesa.includes(k) && mesa.push(k);
+  (lineas.mesa || []).forEach((x) => pon(piezaDe(x)));
+  lineas.ingredientes.forEach((x) => pon(piezaDe(x)));
+  acciones.forEach((a) => a.verbo === 'echar' && pon(a.obj));
+  if (mesa.length > 8) console.log(`AVISO · ${mesa.length} piezas en la mesa y solo caben 8: las últimas se solapan`);
+  props.cocina = {acciones, ingredientes: lineas.ingredientes, mesa, fin: finVoz};
+}
 if (modo === 'historia' && lineas.mundo) {
   props.mundo = lineas.mundo;
   let previo = 'general';

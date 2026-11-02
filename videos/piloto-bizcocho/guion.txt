@@ -1,0 +1,18 @@
+# receta: bizcocho de yogur  (PILOTO del formato cocina: las cantidades de verdad las pone ella)
+# formato: cocina
+# idioma: es
+# ingredientes: 3 huevos; 1 yogur natural; 2 medidas de azúcar; 3 medidas de harina; 1 medida de aceite; 1 sobre de levadura
+[general] El bizcocho más fácil del mundo, y *sin báscula*.
+[ingredientes] El vaso del yogur es tu medida.
+[echar huevos] Tres huevos al bol…
+[echar azucar] dos medidas de azúcar…
+[batir] y bate hasta que *blanquee*.
+[echar yogur] Ahora el yogur…
+[echar aceite] y una medida de aceite.
+[echar harina] Harina y levadura…
+[mezclar] y mezcla suave, *sin batir de más*.
+[verter] Todo al molde.
+[hornear 180] Horno a ciento ochenta grados…
+[esperar 35] treinta y cinco minutos, y *no abras la puerta*.
+[sacar] Y mira cómo ha subido.
+[corte] ¿Lo harías con *chocolate* o con limón?
