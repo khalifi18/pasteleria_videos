@@ -8,7 +8,8 @@
 
 ## Cada vídeo
 - El dulce terminado en el primer segundo (el plano más bonito).
-- **La receta completa en la descripción**: es lo que hace que la guarden.
+- **La receta completa en la descripción o en el primer comentario (fijado)**, y el vídeo lo avisa siempre: es lo que hace que la guarden.
+- Cuanto más corto, mejor (máximo 1:30): se ve hasta el final más veces.
 - Pregunta fácil al final y en la descripción ("¿Chocolate o limón?").
 - Responder a los comentarios la primera hora. Si alguien pregunta "¿y sin huevo?", responder con un vídeo truco.
 

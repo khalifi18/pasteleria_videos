@@ -150,7 +150,10 @@ const lineasProps = lineas.map((l, i) => ({
   arabe: (pov || modo === 'hikma' || (modo === 'historia' && lineas.mundo)) && l.busqueda === 'texto' ? l.texto : null,
 }));
 
-const props = {audio: null, modo, idioma: lineas.idioma, firma: cfg.firma, cierre: cfg.cierre, finVoz, duracion, lineas: lineasProps, planos, pov: pov || modo === 'hikma' ? lineas.pov || '' : null, color: lineas.color, elemento: lineas.elemento};
+if (finVoz > 90) console.log(`AVISO · la voz dura ${finVoz.toFixed(0)} s: el máximo es 1:30 (y cuanto más corto, mejor). Recorta o parte la receta en dos vídeos`);
+const donde = (lineas.recetaEn || cfg.receta_en || 'descripcion').startsWith('com') ? 'en el primer comentario' : 'en la descripción';
+const aviso = lineas.aviso ? `Receta completa ${donde}` : null;
+const props = {audio: null, modo, idioma: lineas.idioma, aviso, firma: cfg.firma, cierre: cfg.cierre, finVoz, duracion, lineas: lineasProps, planos, pov: pov || modo === 'hikma' ? lineas.pov || '' : null, color: lineas.color, elemento: lineas.elemento};
 if (modo === 'cocina') {
   // ingrediente escrito de muchas formas → pieza dibujada (igual que piezaDe en src/cocina/estado.ts)
   const piezaDe = (txt) => {

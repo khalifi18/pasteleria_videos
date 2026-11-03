@@ -41,8 +41,13 @@ La estructura de abajo (gancho → ingredientes → pasos → truco → resultad
 5. **Resultado + pregunta fácil** para que comenten ("¿Con chocolate o con limón?").
 
 ## Duración
-**30–45 s** de voz: 60–90 palabras en español, 6–9 líneas. Si una receta es larga, se parte en dos vídeos
-("parte 1: la masa", "parte 2: el relleno") o se resumen pasos.
+**Máximo 1:30, y cuanto más corto mejor.** Una receta sencilla: 35–45 s (60–90 palabras). Una media: hasta 60 s.
+Si no cabe en 1:30, se parte en vídeos ("parte 1: la masa", "parte 2: el laminado"): además la gente vuelve a por la siguiente.
+
+## Dónde está la receta (en todos los vídeos)
+- En pantalla sale solo: una pastilla dorada "Receta completa en la descripción ↓" al principio y en el cierre
+  (`receta_en` en `config.json`: `descripcion` o `comentario`; para un vídeo, `# receta-en: comentario`).
+- La última frase de la voz también lo dice, junto a la pregunta: "¿Con chocolate o con limón? La receta completa, en la descripción."
 
 ## Idioma
 - `# idioma: es`: cada línea es solo la frase en español (voz y subtítulo iguales).

@@ -15,4 +15,4 @@
 [hornear 180] Horno a ciento ochenta grados…
 [esperar 35] treinta y cinco minutos, y *no abras la puerta*.
 [sacar] Y mira cómo ha subido.
-[corte] ¿Lo harías con *chocolate* o con limón?
+[corte] ¿Lo harías con *chocolate* o con limón? La receta completa, en la descripción.

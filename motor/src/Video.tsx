@@ -1,7 +1,7 @@
 import React from 'react';
 import {AbsoluteFill, Html5Audio, OffthreadVideo, Sequence, staticFile, useCurrentFrame, useVideoConfig} from 'remotion';
 import {C, W, amiri, sans, serif} from './tema';
-import {easeOut, lerp, prog} from './util';
+import {back, easeOut, lerp, prog} from './util';
 import {Subtitulo, trozosEs} from './Subtitulos';
 import {ESCENAS, FOCOS} from './dibujos';
 import {Camara2D} from './dibujos/camara2d';
@@ -50,6 +50,7 @@ export type VideoProps = {
   tramos?: Tramo[]; // historia en 3D: a qué plano va la cámara y cuándo
   idioma?: 'es' | 'darija';
   cocina?: DatosCocina; // formato cocina: acciones, ingredientes y piezas de la mesa
+  aviso?: string | null; // "Receta completa en la descripción": sale al principio, en la portada y en el cierre
   firma: string;
   cierre: string;
   finVoz: number;
@@ -130,6 +131,19 @@ const TarjetaIngredientes: React.FC<{items: string[]; f: number; d: number}> = (
     </AbsoluteFill>
   );
 };
+
+/** Pastilla "Receta completa en la descripción" con flecha hacia abajo */
+const Aviso: React.FC<{texto: string; o: number; y: number; pop?: number}> = ({texto, o, y, pop = 1}) => (
+  <div style={{position: 'absolute', top: y, width: W, display: 'flex', justifyContent: 'center', opacity: o}}>
+    <div style={{display: 'flex', alignItems: 'center', gap: 18, background: C.oro, color: '#2a1408', fontFamily: sans, fontWeight: 800, fontSize: 40, padding: '18px 34px', borderRadius: 999, boxShadow: '0 12px 34px rgba(0,0,0,0.4)', transform: `scale(${0.85 + 0.15 * pop})`}}>
+      {texto}
+      <svg width={34} height={34} viewBox="0 0 34 34">
+        <circle cx={17} cy={17} r={16} fill="#2a1408" />
+        <path d="M17 9 L17 24 M10 18 L17 25 L24 18" stroke={C.oro} strokeWidth={3.6} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    </div>
+  </div>
+);
 
 const Pov: React.FC<{texto: string; frame: number}> = ({texto, frame}) => {
   const e = easeOut(prog(frame, 0, 14));
@@ -253,6 +267,10 @@ export const Video: React.FC<VideoProps> = (p) => {
         </div>
       )}
 
+      {p.aviso && (p.portada || frame < fps * 4.6) && (
+        <Aviso texto={p.aviso} y={1600} o={p.portada ? 1 : Math.min(prog(frame, fps * 0.6, 8), 1 - prog(frame, fps * 4.1, 10))} pop={p.portada ? 1 : back(prog(frame, fps * 0.6, 10))} />
+      )}
+
       {cierre > 0 && (
         <AbsoluteFill style={{background: `rgba(18,11,8,${cierre})`, alignItems: 'center', justifyContent: 'center'}}>
           <div style={{opacity: cierre, transform: `translateY(${lerp(24, 0, cierre)}px)`, textAlign: 'center', padding: '0 120px'}}>
@@ -260,6 +278,7 @@ export const Video: React.FC<VideoProps> = (p) => {
             <div style={{width: 120, height: 2, background: C.oro, margin: '44px auto'}} />
             <div style={{fontFamily: sans, fontWeight: 800, fontSize: 44, color: C.oro, letterSpacing: 1}}>{p.firma}</div>
           </div>
+          {p.aviso && <Aviso texto={p.aviso} y={1380} o={cierre} pop={back(prog(frame, finVozF + 14, 12))} />}
         </AbsoluteFill>
       )}
 

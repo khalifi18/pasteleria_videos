@@ -38,9 +38,13 @@ Lo mejor es que la receta se vea con **sus propias manos**. Pídele que grabe y 
 
 ## 3 · Guion → `videos/<slug>/guion.txt`
 `node motor/scripts/nuevo.mjs videos/<slug>` crea la plantilla. Lee `guias/guion.md`. Lo esencial:
-- Cocina: 12–16 líneas, 35–45 s, una acción por frase (`guias/cocina.md`).
+- **Duración: máximo 1:30, y cuanto más corto mejor** (una receta sencilla, 35–45 s). Si una receta no cabe, se parte en partes.
+- Cocina: una acción por frase (`guias/cocina.md`).
 - Receta: **30–45 s**, 6–9 líneas. Estructura: dulce terminado (gancho) → `[ingredientes]` → pasos → `[texto]` truco → resultado + pregunta.
-- Las cantidades, temperaturas y tiempos salen de ella: no los inventes.
+- Las cantidades, temperaturas y tiempos salen de ella (o de su infografía, si te la pasa: léela de la imagen): no los inventes.
+- **Todos los vídeos avisan de dónde está la receta.** En pantalla sale solo (al principio y en el cierre, según `receta_en` de
+  `config.json`; para un vídeo concreto `# receta-en: comentario`). Además la última frase de la voz lo dice:
+  "La receta completa, en la descripción" / "…en el primer comentario" (en darija: "الوصفة كاملة فالديسكريبسيون").
 - **Enséñale el guion (y el plano de cada línea) y espera su OK.**
 
 ## 4 · Voz
@@ -56,8 +60,10 @@ Solo cuesta si cambia el texto hablado.
   Un vídeo de cocina de 40 s puede tardar 30–60 min: avísale de que tardará.
 
 ## 6 · Entrega
-Escribe `out/texto-del-post.txt`:
-1. Gancho (1 línea) + pregunta para comentarios.
-2. **La receta completa**: ingredientes y pasos numerados (la gente la guarda por esto).
-3. "Guárdala para hacerla este finde" + 5–8 hashtags (#reposteria #recetasfaciles #postres #bizcocho …; en darija añade #حلويات #الطبخ_المغربي).
-Envíale los tres archivos con una línea de resumen y la mejor hora para publicarlo (`guias/crecer.md`).
+Escribe en `out/`:
+- `texto-del-post.txt`: gancho (1 línea) + pregunta para comentarios + "Guárdala para hacerla este finde" + 5–8 hashtags
+  (#reposteria #recetasfaciles #postres #bizcocho …; en darija añade #حلويات #الطبخ_المغربي).
+  Si la receta va **en la descripción** (`receta_en: descripcion`), añade aquí **la receta completa**: ingredientes y pasos numerados.
+- Si la receta va **en el primer comentario** (`receta_en: comentario`): `primer-comentario.txt` con la receta completa,
+  y dile que lo publique como primer comentario y lo fije.
+Envíale los archivos con una línea de resumen y la mejor hora para publicarlo (`guias/crecer.md`).

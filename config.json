@@ -1,7 +1,8 @@
 {
-  "_nota": "firma = nombre de la cuenta que sale en el vídeo. voice_id = su voz de ElevenLabs. La clave de ElevenLabs va en la variable de entorno ELEVENLABS_API_KEY, nunca aquí.",
+  "_nota": "firma = nombre de la cuenta que sale en el vídeo. receta_en = dónde está la receta completa: descripcion o comentario (sale en pantalla en todos los vídeos). voice_id = su voz de ElevenLabs. La clave de ElevenLabs va en la variable de entorno ELEVENLABS_API_KEY, nunca aquí.",
   "firma": "@tu_cuenta",
   "cierre": "Guárdala para hacerla este finde",
+  "receta_en": "descripcion",
   "voz": {
     "voice_id": "PEGAR_AQUI_EL_VOICE_ID",
     "model_id": "eleven_v4",

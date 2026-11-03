@@ -50,7 +50,8 @@ si hace falta otro orden, `# mesa: huevos, azucar, harina`. Caben 8.
 - Empieza con `[general]` o directamente con el resultado si hay un vídeo suyo bonito (`[mio …]`).
 - **El final, si se puede, con su dulce real**: `[mio …]` del corte o de la miga. Lo dibujado explica;
   lo real da ganas de hacerlo.
-- 12–16 líneas, 35–45 s.
+- Lo más corto posible: una receta sencilla, 12–16 líneas (35–45 s). Máximo 1:30; si no cabe, en partes.
+- La última frase avisa de dónde está la receta ("La receta completa, en la descripción"); en pantalla sale solo.
 - Lo que no existe como pieza (otro ingrediente, otro utensilio) se dice en la frase pero se apoya en una acción que sí existe
   (p. ej. "un chorrito de vainilla" con `[mezclar]`). Si una receta lo necesita de verdad, se dibuja una pieza nueva en
   `motor/src/cocina/piezas.tsx` (función `Ingrediente`) y se añade a `INGR` en `estado.ts`, con el mismo estilo:

@@ -83,6 +83,9 @@ export function leerGuion(dir) {
   lineas.idioma = idioma;
   lineas.ingredientes = ingredientes;
   lineas.mesa = lista(cab('mesa'));
+  // dónde está la receta completa (pisa a config.json) · "# aviso: no" lo quita en este vídeo
+  lineas.recetaEn = (cab('receta-en') || '').toLowerCase() || null;
+  lineas.aviso = !/^no/i.test(cab('aviso') || '');
   lineas.fondo = formato === 'pov' ? fondo : null;
   lineas.pov = pov;
   lineas.color = cab('color');
