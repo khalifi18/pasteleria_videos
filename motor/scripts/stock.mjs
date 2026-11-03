@@ -19,7 +19,7 @@ const UA = {
 };
 const BASE = 'https://mixkit.co';
 const lineas = leerGuion(dir);
-if (lineas.formato === 'historia' || lineas.formato === 'hikma' || lineas.formato === 'cocina' || lineas.formato === 'infografia') {
+if (lineas.formato === 'historia' || lineas.formato === 'hikma' || lineas.formato === 'cocina' || lineas.formato === 'infografia' || lineas.formato === 'ficha') {
   console.log(`OK · el formato ${lineas.formato} no usa clips (0 descargas)`);
   process.exit(0);
 }

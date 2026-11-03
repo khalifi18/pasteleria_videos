@@ -37,7 +37,7 @@ export function leerGuion(dir) {
   const lista = (s) => (s ? s.split(',').map((x) => x.trim().toLowerCase()).filter(Boolean) : null);
   const fondo = lista(cab('fondo'));
   const pov = cab('pov');
-  const ALIAS = {infografía: 'infografia', 'infografia-viva': 'infografia', receta: 'leccion', 'mis-clips': 'leccion', truco: 'hikma', hikmah: 'hikma', error: 'hikma'};
+  const ALIAS = {'infografia-generada': 'ficha', infografía: 'infografia', 'infografia-viva': 'infografia', receta: 'leccion', 'mis-clips': 'leccion', truco: 'hikma', hikmah: 'hikma', error: 'hikma'};
   const nombre = (cab('formato') || (fondo ? 'pov' : 'receta')).toLowerCase().split(/\s/)[0];
   const formato = ALIAS[nombre] || nombre;
   const idioma = /^es/i.test(cab('idioma') || '') ? 'es' : 'darija';
@@ -60,7 +60,7 @@ export function leerGuion(dir) {
         l = m[2];
       }
     }
-    if ((formato === 'cocina' || formato === 'infografia') && !busqueda) busqueda = 'sigue';
+    if ((formato === 'cocina' || formato === 'infografia' || formato === 'ficha') && !busqueda) busqueda = 'sigue';
     if (formato === 'leccion') {
       if (!busqueda) busqueda = ambiente[n++ % ambiente.length];
       if (busqueda === '=' && !lineas.length) busqueda = ambiente[n++ % ambiente.length];
@@ -83,6 +83,30 @@ export function leerGuion(dir) {
   lineas.idioma = idioma;
   lineas.ingredientes = ingredientes;
   lineas.mesa = lista(cab('mesa'));
+  // ficha: # titulo: La tarta de | Lotus · # lema · # datos: a; b · # ingredientes grupo: a; b · # paso N: Título | texto | escena · # tarta · # foto
+  {
+    const t = (cab('titulo') || '').split('|').map((x) => x.trim());
+    const grupos = [];
+    const pasos = [];
+    for (const f of filas) {
+      const g = f.match(/^#\s*ingredientes\s+([^:]+):\s*(.*)$/i);
+      if (g) grupos.push({nombre: g[1].trim(), items: g[2].split(';').map((x) => x.trim()).filter(Boolean)});
+      const p = f.match(/^#\s*paso\s+(\d+)\s*:\s*(.*)$/i);
+      if (p) {
+        const [titulo, texto = '', escena = ''] = p[2].split('|').map((x) => x.trim());
+        pasos.push({n: parseInt(p[1], 10), titulo, texto, escena: escena.split(/\s+/).filter(Boolean)});
+      }
+    }
+    lineas.ficha = {
+      titulo: [t[0] || '', t[1] || t[0] || ''],
+      lema: cab('lema') || '',
+      datos: (cab('datos') || '').split(';').map((x) => x.trim()).filter(Boolean),
+      grupos,
+      pasos: pasos.sort((a, b) => a.n - b.n),
+      tarta: (cab('tarta') || '').toLowerCase().trim(),
+      foto: cab('foto'),
+    };
+  }
   // infografía: # imagen: archivo.jpg  y  # zona nombre: x y ancho alto (en % de la imagen)
   lineas.imagen = cab('imagen');
   lineas.zonas = {};

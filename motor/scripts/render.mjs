@@ -121,7 +121,7 @@ if (modo === 'hikma') {
     const b = k === n - 1 ? durF : Math.round(((k + 1) * durF) / n) + 12;
     return {texto: '', a, b, clip: preparar(f.clip.archivo, ((b - a) / FPS + 0.4).toFixed(2), `fondo-${k}`)};
   });
-} else if (modo === 'infografia') {
+} else if (modo === 'ficha' || modo === 'infografia') {
   // La cámara recorre la infografía; encima solo van sus vídeos [mio] y las tarjetas [texto]
   planos = [];
   lineas.forEach((l, i) => {
@@ -164,6 +164,34 @@ if (finVoz > 90) console.log(`AVISO · la voz dura ${finVoz.toFixed(0)} s: el m�
 const donde = (lineas.recetaEn || cfg.receta_en || 'descripcion').startsWith('com') ? 'en el primer comentario' : 'en la descripción';
 const aviso = lineas.aviso ? `Receta completa ${donde}` : null;
 const props = {audio: null, modo, idioma: lineas.idioma, aviso, firma: cfg.firma, cierre: cfg.cierre, finVoz, duracion, lineas: lineasProps, planos, pov: pov || modo === 'hikma' ? lineas.pov || '' : null, color: lineas.color, elemento: lineas.elemento};
+if (modo === 'ficha') {
+  const f = lineas.ficha;
+  if (!f.grupos.length || !f.pasos.length) fallo('la ficha necesita "# ingredientes grupo: …" y "# paso N: Título | texto | escena"');
+  const TARTAS = ['lotus', 'limon', 'chocolate', 'fresa', 'red-velvet', 'vainilla'];
+  const tarta = TARTAS.includes(f.tarta) ? f.tarta : 'vainilla';
+  if (f.tarta && !TARTAS.includes(f.tarta)) console.log(`AVISO · # tarta: ${f.tarta} no existe (hay: ${TARTAS.join(', ')}); uso vainilla`);
+  let foto = null;
+  if (f.foto) {
+    const src = path.join(dir, f.foto);
+    if (!fs.existsSync(src)) fallo(`no existe la foto ${f.foto} en la carpeta del vídeo`);
+    fs.mkdirSync(path.join(pub, 'fotos'), {recursive: true});
+    fs.copyFileSync(src, path.join(pub, 'fotos', `${slug}${path.extname(src)}`));
+    foto = `fotos/${slug}${path.extname(src)}`;
+  }
+  let previa = 'portada';
+  const tramos = lineas.map((l, i) => {
+    let z = (l.busqueda || 'sigue').trim();
+    if (['sigue', '=', 'mio', 'texto'].includes(z.split(/\s+/)[0])) z = previa;
+    if (z === 'todo' || z === 'general') z = 'portada';
+    if (z.startsWith('ingredientes ') && !f.grupos.some((g) => g.nombre.toLowerCase() === z.slice(13).trim())) fallo(`línea ${i + 1}: no hay "# ingredientes ${z.slice(13).trim()}:"`);
+    if (/^paso\s*\d+/.test(z) && !f.pasos.some((p) => p.n === parseInt(z.replace(/\D/g, ''), 10))) fallo(`línea ${i + 1}: no hay "# paso ${z.replace(/\D/g, '')}:"`);
+    if (!/^(portada|porcion|final|ingredientes|pasos|paso\s*\d+)/.test(z)) fallo(`línea ${i + 1}: [${z}] no es una zona de la ficha (portada, ingredientes, ingredientes <grupo>, paso N, porcion)`);
+    previa = z;
+    return {zona: z, ini: tiempos[i].ini, fin: tiempos[i].fin};
+  });
+  // la tarta de la paleta (TARTAS en src/ficha/datos.ts) se resuelve en el componente
+  props.ficha = {titulo: f.titulo, lema: f.lema, datos: f.datos, grupos: f.grupos, pasos: f.pasos, tartaNombre: tarta, foto, aviso, tramos, fin: finVoz};
+}
 if (modo === 'infografia') {
   if (!lineas.imagen) fallo('falta "# imagen: archivo.jpg" (la infografía, dentro de la carpeta del vídeo)');
   const img = path.join(dir, lineas.imagen);
@@ -275,6 +303,12 @@ if (args.includes('--hoja')) {
   const cols = 4, rows = Math.ceil(frames.length / cols);
   execFileSync('ffmpeg', ['-v', 'error', '-y', '-i', path.join(hd, 'h_%02d.jpg'), '-vf', `tile=${cols}x${rows}:padding=6:color=white`, '-frames:v', '1', path.join(out, 'hoja.jpg')]);
   console.log(`OK · hoja con ${frames.length} fotogramas → ${path.join(out, 'hoja.jpg')}`);
+} else if (args.includes('--imagen')) {
+  // la ficha entera como imagen (para publicarla también como post): out/infografia.jpg
+  if (modo !== 'ficha') fallo('--imagen solo vale para el formato ficha');
+  const comp = await selectComposition({serveUrl, id: 'FichaImagen', inputProps: {d: props.ficha}, chromiumOptions, browserExecutable});
+  await renderStill({chromiumOptions, browserExecutable, composition: comp, serveUrl, frame: 0, output: path.join(out, 'infografia.jpg'), inputProps: {d: props.ficha}, imageFormat: 'jpeg', jpegQuality: 92});
+  console.log(`OK · ${path.join(out, 'infografia.jpg')} (${comp.width}×${comp.height})`);
 } else if (args.includes('--tira')) {
   // --tira 3.2,3.6,4.0 → out/tira.jpg con esos instantes (segundos) en fila, para revisar un movimiento
   const ts = args[args.indexOf('--tira') + 1].split(',').map(Number);

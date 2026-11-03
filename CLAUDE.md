@@ -10,8 +10,8 @@ Ella sabe de repostería más que tú: si dice que un paso o una cantidad es as�
 
 ## Lo que puede pedirte
 - **Un vídeo de receta**: usa la skill `video-receta` (`.claude/skills/video-receta/SKILL.md`).
-  Formatos principales: **infografia** (la cámara recorre su infografía, `guias/infografia.md`) y
-  **cocina** (cocina dibujada y cámara que viaja, `guias/cocina.md`).
+  Formato principal: **ficha** (el motor dibuja la infografía de la receta y la cámara la recorre, `guias/ficha.md`).
+  Otros: **cocina** (cocina dibujada, `guias/cocina.md`) e **infografia** (recorrer una imagen ya hecha, `guias/infografia.md`).
   Primero el guion, espera su OK, luego el vídeo.
 - **Ideas y estrategia**: `guias/temas.md` y `guias/crecer.md`. Propón recetas concretas con su gancho,
   un calendario semanal, y analiza sus estadísticas si te pasa capturas.

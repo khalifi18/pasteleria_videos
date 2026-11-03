@@ -1,0 +1,27 @@
+# receta: tarta de Lotus (sin horno) · EJEMPLO del formato ficha
+# formato: ficha
+# idioma: es
+# tarta: lotus
+# titulo: La tarta de | Lotus
+# lema: Cremosa, crujiente e irresistible
+# datos: Sin horno; 8–10 porciones; 4 h de nevera
+# ingredientes base: 250 g de galletas Lotus; 100 g de mantequilla derretida
+# ingredientes crema: 400 ml de nata para montar; 400 g de queso crema; 200 g de crema Lotus; 100 g de azúcar glas; 1 cdta de esencia de vainilla
+# ingredientes cobertura: 150 g de crema Lotus; 100 ml de nata líquida
+# ingredientes decorar: Galletas Lotus enteras y trituradas; Crema Lotus para los rosetones
+# paso 1: La base | Tritura las galletas, mézclalas con la mantequilla y presiona en el molde. 30 min a la nevera. | triturar galleta
+# paso 2: La crema | Monta la nata. Bate el queso crema con el azúcar, la crema Lotus y la vainilla, y une con movimientos envolventes. | mezclar crema
+# paso 3: Monta la tarta | Vierte la crema sobre la base y alisa. Mínimo 4 horas en la nevera. | molde galleta crema
+# paso 4: La cobertura | Calienta la nata casi hasta hervir y mézclala con la crema Lotus hasta que brille. | calentar caramelo
+# paso 5: Cubre y enfría | Vierte la cobertura sobre la tarta fría y otros 30–60 min a la nevera. | cubrir caramelo crema
+# paso 6: Decora | Rosetones de crema Lotus y galletas enteras y trituradas. | decorar
+[portada] La tarta de Lotus más cremosa… y *sin horno*.
+[ingredientes base] Para la base, galletas Lotus y *mantequilla*.
+[ingredientes crema] La crema: nata, queso crema, crema Lotus, azúcar glas y vainilla.
+[paso 1] Tritura las galletas, mézclalas y presiona en el molde.
+[paso 2] Bate la crema y une la nata *con movimientos envolventes*.
+[paso 3] Sobre la base, y a la nevera *mínimo cuatro horas*.
+[paso 4] Calienta la nata y mézclala con la crema Lotus.
+[paso 5] Cúbrela…
+[paso 6] y decora con rosetones y galletas.
+[porcion] ¿Te atreves con ella? La receta completa, en la descripción.

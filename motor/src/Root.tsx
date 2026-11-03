@@ -3,6 +3,9 @@ import {AbsoluteFill, Composition, useCurrentFrame} from 'remotion';
 import {FPS, H, W} from './tema';
 import {Video, VideoProps} from './Video';
 import {ESCENAS} from './dibujos';
+import {FichaImagen} from './ficha/Ficha';
+import {FW, maqueta} from './ficha/datos';
+import type {DatosFicha} from './ficha/datos';
 
 const ejemplo: VideoProps = {
   audio: null,
@@ -34,6 +37,16 @@ export const Root: React.FC = () => (
       durationInFrames={FPS * 8}
       defaultProps={ejemplo}
       calculateMetadata={({props}) => ({durationInFrames: Math.ceil(props.duracion * FPS)})}
+    />
+    <Composition
+      id="FichaImagen"
+      component={FichaImagen}
+      width={FW}
+      height={2000}
+      fps={FPS}
+      durationInFrames={1}
+      defaultProps={{d: {titulo: ['', ''], lema: '', datos: [], grupos: [], pasos: [], tramos: [], fin: 0} as DatosFicha}}
+      calculateMetadata={({props}) => ({height: Math.ceil(maqueta(props.d).alto / 2) * 2})}
     />
     <Composition id="Escena" component={VistaEscena} width={W} height={H} fps={FPS} durationInFrames={150} defaultProps={{escena: 'puerta', opts: [] as string[], k: 30, d: 150}} />
   </>

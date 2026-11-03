@@ -12,6 +12,8 @@ import {MUNDOS} from './mundos';
 import {MundoCocina} from './cocina/Mundo';
 import type {DatosCocina} from './cocina/estado';
 import {ViajeInfografia, DatosInfografia} from './infografia/Viaje';
+import {FichaViaje} from './ficha/Ficha';
+import type {DatosFicha} from './ficha/datos';
 import type {Tramo} from './mundos/camara';
 
 // Formatos:
@@ -19,7 +21,7 @@ import type {Tramo} from './mundos/camara';
 //  hikma    → fondo de color + elemento dibujado, POV arriba, frase grande en el centro
 //  leccion  → un clip de vídeo por frase, subtítulos abajo
 //  pov      → 1–2 clips de fondo para todo el vídeo, POV arriba, frase grande en el centro
-export type Modo = 'historia' | 'hikma' | 'leccion' | 'pov' | 'cocina' | 'infografia';
+export type Modo = 'historia' | 'hikma' | 'leccion' | 'pov' | 'cocina' | 'infografia' | 'ficha';
 
 export type Linea = {
   es: string; // frase en español
@@ -51,7 +53,8 @@ export type VideoProps = {
   tramos?: Tramo[]; // historia en 3D: a qué plano va la cámara y cuándo
   idioma?: 'es' | 'darija';
   cocina?: DatosCocina; // formato cocina: acciones, ingredientes y piezas de la mesa
-  infografia?: DatosInfografia; // formato infografía viva
+  infografia?: DatosInfografia; // formato infografía viva (su imagen)
+  ficha?: DatosFicha; // formato ficha (infografía generada)
   aviso?: string | null; // "Receta completa en la descripción": sale al principio, en la portada y en el cierre
   firma: string;
   cierre: string;
@@ -205,14 +208,14 @@ export const Video: React.FC<VideoProps> = (p) => {
   const arabeE = la.arabe ? easeOut(prog(frame, Math.round(la.ini * fps) - 4, 14)) : 0;
   const centro = centrado(modo);
   // En las tarjetas (ingredientes o frase grande) el texto ya está en pantalla: sin subtítulo
-  const plAhora = modo === 'leccion' || modo === 'cocina' || modo === 'infografia' ? p.planos.find((pl, i) => frame >= pl.a && (modo !== 'leccion' ? frame < pl.b : i === p.planos.length - 1 || frame < p.planos[i + 1].a)) : undefined;
+  const plAhora = modo === 'leccion' || modo === 'cocina' || modo === 'infografia' || modo === 'ficha' ? p.planos.find((pl, i) => frame >= pl.a && (modo !== 'leccion' ? frame < pl.b : i === p.planos.length - 1 || frame < p.planos[i + 1].a)) : undefined;
   const enTarjeta = !!plAhora && !plAhora.clip && !plAhora.escena && (plAhora.li === undefined || plAhora.li === actual);
 
   return (
     <AbsoluteFill style={{backgroundColor: C.noche, overflow: 'hidden'}}>
-      {(modo === 'cocina' && p.cocina) || (modo === 'infografia' && p.infografia) ? (
+      {(modo === 'cocina' && p.cocina) || (modo === 'infografia' && p.infografia) || (modo === 'ficha' && p.ficha) ? (
         <>
-          {modo === 'cocina' && p.cocina ? <MundoCocina d={p.cocina} /> : <ViajeInfografia d={p.infografia!} />}
+          {modo === 'cocina' && p.cocina ? <MundoCocina d={p.cocina} /> : modo === 'ficha' ? <FichaViaje d={p.ficha!} /> : <ViajeInfografia d={p.infografia!} />}
           {p.planos.map((pl, i) => {
             const op = Math.min(prog(frame, pl.a, 10), 1 - prog(frame, pl.b - 10, 10));
             return (
@@ -237,7 +240,7 @@ export const Video: React.FC<VideoProps> = (p) => {
           );
         })
       )}
-      {modo !== 'cocina' && modo !== 'infografia' && <Velo modo={modo} />}
+      {modo !== 'cocina' && modo !== 'infografia' && modo !== 'ficha' && <Velo modo={modo} />}
 
       {centro && p.pov && <Pov texto={p.pov} frame={frame} />}
 
@@ -247,9 +250,9 @@ export const Video: React.FC<VideoProps> = (p) => {
         </div>
       )}
 
-      {!p.portada && frame < finVozF + 6 && !enTarjeta && <Subtitulo es={la.es} ini={la.ini} fin={la.fin} frame={frame} fps={fps} centro={centro} arriba={modo === 'cocina' || modo === 'infografia'} />}
+      {!p.portada && frame < finVozF + 6 && !enTarjeta && <Subtitulo es={la.es} ini={la.ini} fin={la.fin} frame={frame} fps={fps} centro={centro} arriba={modo === 'cocina' || modo === 'infografia' || modo === 'ficha'} />}
 
-      {modo !== 'cocina' && modo !== 'infografia' && (
+      {modo !== 'cocina' && modo !== 'infografia' && modo !== 'ficha' && (
         <div style={{position: 'absolute', top: 150, width: W, textAlign: 'center', fontFamily: sans, fontWeight: 700, fontSize: 30, letterSpacing: 2, color: C.tenue}}>
           {p.firma}
         </div>
