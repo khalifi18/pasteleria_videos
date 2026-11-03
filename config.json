@@ -1,10 +1,10 @@
 {
-  "_nota": "firma = nombre de la cuenta que sale en el vídeo. receta_en = dónde está la receta completa: descripcion o comentario (sale en pantalla en todos los vídeos). voice_id = su voz de ElevenLabs. La clave de ElevenLabs va en la variable de entorno ELEVENLABS_API_KEY, nunca aquí.",
+  "_nota": "firma = nombre de la cuenta que sale en el vídeo. receta_en = dónde está la receta completa: descripcion o comentario (sale en pantalla en todos los vídeos). voice_id = su voz de ElevenLabs (ahora Eva, castellano peninsular; la de Ghalia es árabe y cecea en español). La clave de ElevenLabs va en la variable de entorno ELEVENLABS_API_KEY, nunca aquí.",
   "firma": "@tu_cuenta",
   "cierre": "Guárdala para hacerla este finde",
   "receta_en": "descripcion",
   "voz": {
-    "voice_id": "ugVysa6SU3kBjf7zmeSV",
+    "voice_id": "7TOiNISMahmVww93K9Xo",
     "model_id": "eleven_v4",
     "stability": 0.5,
     "similarity_boost": 0.75,
