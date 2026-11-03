@@ -50,7 +50,7 @@ Solo cuesta si cambia el texto hablado.
 ## 5 · Imágenes y montaje
 - Solo formato receta: `node motor/scripts/stock.mjs videos/<slug>` (descarga los pasos que no son `[mio]`; `--otro N` cambia el clip N).
 - `node motor/scripts/render.mjs videos/<slug> --hoja` → abre `out/hoja.jpg` con Read y revisa: se ve el paso que se dice,
-  nada cortado, textos legibles, ingredientes completos.
+  nada cortado, textos legibles, ingredientes completos. En cocina, revisa también los movimientos con `--tira` (ver `guias/cocina.md`).
 - `node motor/scripts/render.mjs videos/<slug>` → `out/video.mp4` + `out/portada.jpg`.
   Si la máquina es lenta (en la nube suele serlo): `bash motor/scripts/render-por-tramos.sh videos/<slug>` monta en paralelo y une.
   Un vídeo de cocina de 40 s puede tardar 30–60 min: avísale de que tardará.

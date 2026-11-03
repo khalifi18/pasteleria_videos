@@ -29,7 +29,7 @@ export const INGR: Record<string, Ingr> = {
   leche: {color: '#fffdf8', peso: 0.16, tipo: 'liquido', r: 105},
   levadura: {color: '#efe7d6', peso: 0.03, tipo: 'polvo', r: 110},
   mantequilla: {color: '#f6d873', peso: 0.13, tipo: 'solido', r: 130},
-  chocolate: {color: '#4e2a1a', peso: 0.16, tipo: 'liquido', r: 130},
+  chocolate: {color: '#4e2a1a', peso: 0.16, tipo: 'solido', r: 130},
   cacao: {color: '#6b3d27', peso: 0.1, tipo: 'polvo', r: 100},
   limon: {color: '#f2dc6a', peso: 0.02, tipo: 'solido', r: 120},
 };
@@ -187,10 +187,6 @@ export const colorMasa = (e: Estado) => aclara(mezclaColor(e.mezcla, '#f3dc9a'),
 export type Cam = {x: number; y: number; z: number};
 
 export const objetivo = (d: DatosCocina, a: Accion): Cam => {
-  const hacia = (k: string | null, f: number, z: number): Cam => {
-    const h = k ? hueco(d, k) : BOL;
-    return {x: BOL.x + (h.x - BOL.x) * f, y: BOL.y + (h.y - BOL.y) * f, z};
-  };
   switch (a.verbo) {
     case 'general':
       return {x: MW / 2, y: MH / 2, z: 0.47};
@@ -199,8 +195,15 @@ export const objetivo = (d: DatosCocina, a: Accion): Cam => {
       return {x: MW / 2, y: 2880, z: 0.6};
     case 'ver':
       return a.obj ? {...hueco(d, a.obj), z: 1.45} : {x: BOL.x, y: BOL.y, z: 1};
-    case 'echar':
-      return hacia(a.obj, 0.32, 1.02);
+    case 'echar': {
+      // encuadra a la vez el ingrediente y el bol, con hueco arriba para el subtítulo
+      if (!a.obj || !INGR[a.obj]) return {x: BOL.x, y: BOL.y, z: 1.2};
+      const h = hueco(d, a.obj), r = INGR[a.obj].r;
+      const x0 = Math.min(h.x - r, BOL.x - BOL.r) - 80, x1 = Math.max(h.x + r, BOL.x + BOL.r) + 80;
+      const y0 = Math.min(h.y - r, BOL.y - BOL.r) - 80, y1 = Math.max(h.y + r, BOL.y + BOL.r) + 80;
+      const z = Math.min(1.2, 1080 / (x1 - x0), 1420 / (y1 - y0));
+      return {x: (x0 + x1) / 2, y: (y0 + y1) / 2 - 190 / z, z};
+    }
     case 'batir':
     case 'mezclar':
       return {x: BOL.x, y: BOL.y + 20, z: 1.5};
@@ -214,7 +217,7 @@ export const objetivo = (d: DatosCocina, a: Accion): Cam => {
       return {x: MOLDE.x, y: MOLDE.y - 40, z: 1.25};
     case 'corte':
     case 'cortar':
-      return {x: MOLDE.x + 60, y: MOLDE.y + 40, z: 1.65};
+      return {x: MOLDE.x + 110, y: MOLDE.y + 10, z: 1.42};
     case 'decorar':
       return {x: MOLDE.x, y: MOLDE.y, z: 1.45};
     default:

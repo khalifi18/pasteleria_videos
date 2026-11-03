@@ -57,4 +57,10 @@ si hace falta otro orden, `# mesa: huevos, azucar, harina`. Caben 8.
   vista desde arriba, sombra suave, brillo arriba a la izquierda.
 
 ## Revisión
-`render.mjs --hoja` y mirar cada fotograma: ¿se entiende el paso sin sonido? ¿las etiquetas se leen? ¿algo tapa el subtítulo?
+1. `render.mjs --hoja` (un fotograma por frase): ¿se entiende el paso sin sonido? ¿las etiquetas se leen? ¿algo tapa el subtítulo?
+2. `render.mjs --tira 9.2,9.8,10.4,…` (instantes en segundos, mira `words.json` para saber cuándo empieza cada frase):
+   revisa los movimientos (echar, verter, cortar) fotograma a fotograma. Cosas que fallaban y ya están resueltas;
+   si vuelven a pasar con una pieza nueva, corrígelo igual:
+   - el recipiente no se mete encima del bol: se queda fuera, con la boca sobre el borde, y se inclina;
+   - cada ingrediente cae del lado por el que se echa y se ve distinto (polvo mate, azúcar con brillos, aceite como brillo dorado, yogur cremoso);
+   - el texto de los envases nunca sale del revés.

@@ -7,7 +7,7 @@ import {
   Accion, BOL, DatosCocina, INGR, MOLDE, Estado,
   aPantalla, avance, camara, cantidad, clamp, colorMasa, estado, etiquetas, hueco, io, lerp, oscurece, salida, suave, textoDe, aclara,
 } from './estado';
-import {Batidor, Bizcocho, Bol, ChorroLiquido, ChorroPolvo, Cuchillo, Defs, Encimera, Espatula, Horno, Ingrediente, Molde, Pared} from './piezas';
+import {Batidor, Bizcocho, Bol, Cascada, Chorro, Cuchillo, Defs, Encimera, Espatula, Horno, Ingrediente, Molde, Pared, Trozos, Vertedor, bocaVertedor} from './piezas';
 
 const activa = (d: DatosCocina, t: number, verbo: string | string[]) => {
   const vs = Array.isArray(verbo) ? verbo : [verbo];
@@ -78,7 +78,7 @@ export const MundoCocina: React.FC<{d: DatosCocina}> = ({d}) => {
     bolY = lerp(BOL.y, MOLDE.y - 470, k);
     bolInc = k;
     const o = clamp((p - 0.2) / 0.06) * (1 - clamp((p - 0.78) / 0.06));
-    if (o > 0) chorroMasa = <ChorroLiquido x0={bolX} y0={bolY + 250} x1={MOLDE.x + 10} y1={MOLDE.y - 20} color={color} frame={frame} o={o} ancho={46} />;
+    if (o > 0) chorroMasa = <Chorro x0={bolX} y0={bolY + 250} x1={MOLDE.x + 10} y1={MOLDE.y - 20} color={color} frame={frame} o={o} ancho={44} espeso />;
   }
 
   // molde: se va al horno al empezar a hornear
@@ -87,7 +87,7 @@ export const MundoCocina: React.FC<{d: DatosCocina}> = ({d}) => {
   if (e.fuera > 0) moldeO = 0;
   const tFuera = sacar ? Math.max(0, t - sacar.ini) : 0;
 
-  // ingrediente en movimiento (va al bol, se inclina, vuelve)
+  // ingrediente en movimiento: se levanta, va al borde del bol (sin taparlo), se inclina y vierte, y vuelve
   let enMovimiento: string | null = null;
   let mov: React.ReactNode = null;
   if (echar && echar.obj && INGR[echar.obj] && echar.obj !== 'huevos') {
@@ -95,27 +95,42 @@ export const MundoCocina: React.FC<{d: DatosCocina}> = ({d}) => {
     const ing = INGR[k];
     const h = hueco(d, k);
     const p = avance(echar, t);
-    const dx = h.x - BOL.x, dy = h.y - BOL.y, dl = Math.hypot(dx, dy) || 1;
-    const ux = dx / dl, uy = dy / dl;
-    const borde = {x: BOL.x + ux * (BOL.r + ing.r * 0.55), y: BOL.y + uy * (BOL.r + ing.r * 0.55)};
-    const ida = io(clamp(p / 0.25)), vuelta = io(clamp((p - 0.78) / 0.22));
+    const dx = BOL.x - h.x, dy = BOL.y - h.y, dl = Math.hypot(dx, dy) || 1;
+    const ux = dx / dl, uy = dy / dl; // del ingrediente hacia el bol
+    const ang = (Math.atan2(uy, ux) * 180) / Math.PI;
+    const boca = bocaVertedor(k);
+    // centro del recipiente: con la boca justo encima del borde del bol
+    const llega = {x: BOL.x - ux * (BOL.r - 40 + boca), y: BOL.y - uy * (BOL.r - 40 + boca)};
+    const ida = io(clamp(p / 0.24)), vuelta = io(clamp((p - 0.8) / 0.2));
     const m = ida * (1 - vuelta);
-    const x = lerp(h.x, borde.x, m), y = lerp(h.y, borde.y, m);
-    const inc = suave(clamp((p - 0.2) / 0.1)) * (1 - suave(clamp((p - 0.72) / 0.1)));
-    const o = clamp((p - 0.25) / 0.05) * (1 - clamp((p - 0.72) / 0.05));
-    const boca = {x: x - ux * ing.r * 0.6, y: y - uy * ing.r * 0.6};
-    const dest = {x: BOL.x - ux * 40 + 10, y: BOL.y - uy * 40 + 12};
+    const x = lerp(h.x, llega.x, m), y = lerp(h.y, llega.y, m);
+    const sube = salida(clamp(p / 0.12)) * (1 - salida(clamp((p - 0.9) / 0.1)));
+    const inc = suave(clamp((p - 0.22) / 0.1)) * (1 - suave(clamp((p - 0.74) / 0.08)));
+    const o = clamp((p - 0.3) / 0.05) * (1 - clamp((p - 0.74) / 0.05));
+    const cambio = clamp(p / 0.1) * (1 - clamp((p - 0.9) / 0.1)); // del dibujo en reposo al recipiente levantado
+    const lleno = 1 - 0.65 * clamp((p - 0.3) / 0.45);
+    const bx = x + ux * boca * (1 - 0.32 * inc), by = y + uy * boca * (1 - 0.32 * inc);
+    const cae = {x: BOL.x - ux * 70 + 10, y: BOL.y - uy * 70 + 12};
     enMovimiento = k;
     mov = (
       <>
-        <g transform={`translate(${x} ${y}) scale(${1 + 0.08 * m})`}>
-          <Ingrediente k={k} inclina={inc} lleno={1 - 0.6 * clamp((p - 0.25) / 0.5)} />
+        {/* sombra en la encimera: se separa al levantarlo */}
+        <ellipse cx={x + 40 + 70 * sube} cy={y + 50 + 90 * sube} rx={ing.r * 1.05} ry={ing.r * 0.8} fill="url(#c-sombra)" opacity={1 - 0.45 * sube} />
+        {cambio < 1 && (
+          <g transform={`translate(${x} ${y})`} opacity={1 - cambio}>
+            <Ingrediente k={k} lleno={lleno} />
+          </g>
+        )}
+        <g transform={`translate(${x} ${y}) rotate(${ang}) scale(${1 + 0.12 * sube})`} opacity={cambio}>
+          <Vertedor k={k} inc={inc} lleno={lleno} ang={ang} />
         </g>
         {o > 0 &&
           (ing.tipo === 'liquido' ? (
-            <ChorroLiquido x0={boca.x} y0={boca.y} x1={dest.x} y1={dest.y} color={k === 'chocolate' ? '#4e2a1a' : k === 'aceite' ? '#e0b43a' : aclara(ing.color, 0.1)} frame={frame} o={o} ancho={k === 'aceite' ? 14 : 24} />
+            <Chorro x0={bx} y0={by} x1={cae.x} y1={cae.y} color={k === 'aceite' ? '#e8b42e' : '#fffcf6'} frame={frame} o={o} ancho={k === 'aceite' ? 13 : k === 'yogur' ? 30 : 20} espeso={k === 'yogur'} />
+          ) : ing.tipo === 'polvo' ? (
+            <Cascada x0={bx} y0={by} x1={cae.x} y1={cae.y} color={k === 'cacao' ? '#6b3d27' : k === 'azucar' ? '#ffffff' : '#f7f1e4'} frame={frame} o={o} />
           ) : (
-            <ChorroPolvo x0={boca.x} y0={boca.y} x1={dest.x} y1={dest.y} color={k === 'cacao' ? '#6b3d27' : k === 'mantequilla' ? '#f6d873' : k === 'limon' ? '#f2c92a' : '#fffaf0'} frame={frame} o={o} />
+            <Trozos x0={bx} y0={by} x1={cae.x} y1={cae.y} k={k} frame={frame} o={o} />
           ))}
       </>
     );
@@ -215,6 +230,12 @@ export const MundoCocina: React.FC<{d: DatosCocina}> = ({d}) => {
     );
   }
 
+  // dónde cae cada ingrediente dentro del bol: del lado por el que se echa
+  const dirs: Record<string, number> = {};
+  d.mesa.forEach((k) => {
+    const h = hueco(d, k);
+    dirs[k] = Math.atan2(h.y - BOL.y, h.x - BOL.x);
+  });
   const ets = etiquetas(d);
   const vista = `translate(540 960) scale(${cam.z}) translate(${-cam.x} ${-cam.y})`;
 
@@ -248,7 +269,7 @@ export const MundoCocina: React.FC<{d: DatosCocina}> = ({d}) => {
             </g>
           )}
           <g transform={`translate(${bolX} ${bolY}) scale(${1 + 0.04 * bolInc} ${1 - 0.08 * bolInc})`}>
-            <Bol e={e} color={color} frame={frame} girando={girando} nHuevos={nHuevos} huevosCaidos={huevosCaidos} />
+            <Bol e={e} color={color} frame={frame} girando={girando} nHuevos={nHuevos} huevosCaidos={huevosCaidos} dirs={dirs} />
           </g>
           {chorroMasa}
           {utensilio}

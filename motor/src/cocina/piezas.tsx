@@ -45,10 +45,10 @@ export const Defs: React.FC = () => (
       <stop offset="0.8" stopColor="#f1e9db" />
       <stop offset="1" stopColor="#d9ccb7" />
     </radialGradient>
-    <radialGradient id="c-interior" cx="0.6" cy="0.64" r="0.6">
-      <stop offset="0" stopColor="#fbf7f0" />
-      <stop offset="0.7" stopColor="#ece2d1" />
-      <stop offset="1" stopColor="#cfc0a8" />
+    <radialGradient id="c-interior" cx="0.6" cy="0.64" r="0.62">
+      <stop offset="0" stopColor="#e9eff1" />
+      <stop offset="0.65" stopColor="#d2dde1" />
+      <stop offset="1" stopColor="#a7b7be" />
     </radialGradient>
     <radialGradient id="c-metal-molde" cx="0.42" cy="0.4" r="0.65">
       <stop offset="0" stopColor="#bfc3c8" />
@@ -476,7 +476,7 @@ export const Ingrediente: React.FC<{k: string; n?: number; lleno?: number; incli
 };
 
 // ---------------- Bol con su contenido ----------------
-export const Bol: React.FC<{e: Estado; color: string; frame: number; girando: number; nHuevos: number; huevosCaidos: number}> = ({e, color, frame, girando, nHuevos, huevosCaidos}) => {
+export const Bol: React.FC<{e: Estado; color: string; frame: number; girando: number; nHuevos: number; huevosCaidos: number; dirs?: Record<string, number>}> = ({e, color, frame, girando, nHuevos, huevosCaidos, dirs = {}}) => {
   const R = 300;
   const rc = (R - 46) * (0.42 + 0.52 * clamp(e.total / 1.25));
   const hay = e.total > 0.008;
@@ -514,13 +514,13 @@ export const Bol: React.FC<{e: Estado; color: string; frame: number; girando: nu
               const largo = 1.6 + (i % 3) * 0.5;
               return <path key={i} d={`M${Math.cos(a0) * rr},${Math.sin(a0) * rr} A${rr},${rr} 0 0 1 ${Math.cos(a0 + largo) * rr},${Math.sin(a0 + largo) * rr}`} stroke={i % 2 ? cl : oc} strokeWidth={9} fill="none" strokeLinecap="round" opacity={0.18 + 0.32 * girando + 0.1 * e.aire} />;
             })}
-          {/* ingredientes aún sin mezclar */}
+          {/* ingredientes aún sin mezclar: cada uno queda donde cayó, con su aspecto */}
           {e.sueltos.map((s, i) => {
             if (s.w < 0.004) return null;
             const ing = INGR[s.k];
             if (!ing) return null;
-            const a = i * 2.1 + 0.6;
-            const d = Math.min(rc * 0.45, 30 + i * 22);
+            const a = dirs[s.k] ?? i * 2.1 + 0.6;
+            const d = s.k === 'huevos' ? 0 : Math.min(rc * 0.42, 40 + i * 18);
             const sx = Math.cos(a) * d, sy = Math.sin(a) * d;
             if (s.k === 'huevos') {
               return (
@@ -532,7 +532,7 @@ export const Bol: React.FC<{e: Estado; color: string; frame: number; girando: nu
                     const cae = clamp(huevosCaidos - j);
                     return (
                       <g key={j} transform={`translate(${hx} ${hy}) scale(${lerp(1.25, 1, salida(cae))})`} opacity={clamp(cae * 3)}>
-                        <ellipse rx={78} ry={70} fill="#fffaf0" opacity={0.75} />
+                        <path d={blob(76, 7, j + 3, 0.08)} fill="#fffaf0" opacity={0.78} />
                         <circle r={38} fill="url(#c-yema)" />
                         <ellipse cx={-12} cy={-14} rx={11} ry={8} fill="#fff" opacity={0.7} />
                       </g>
@@ -541,33 +541,21 @@ export const Bol: React.FC<{e: Estado; color: string; frame: number; girando: nu
                 </g>
               );
             }
-            const r = 40 + 190 * Math.sqrt(s.w);
-            if (ing.tipo === 'polvo')
-              return (
-                <g key={i} transform={`translate(${sx} ${sy})`}>
-                  <circle r={r * 1.08} fill="#000" opacity={0.06} />
-                  <circle r={r} fill={ing.color} />
-                  <circle cx={-r * 0.25} cy={-r * 0.25} r={r * 0.55} fill={aclara(ing.color, 0.5)} opacity={0.6} />
-                  {Array.from({length: 14}).map((__, j) => (
-                    <circle key={j} cx={(rnd(j + i * 9) - 0.5) * r * 1.5} cy={(rnd(j + i * 9 + 4) - 0.5) * r * 1.5} r={2 + rnd(j) * 3} fill={s.k === 'azucar' ? '#fff' : oscurece(ing.color, 0.08)} opacity={0.8} />
-                  ))}
-                </g>
-              );
-            if (ing.tipo === 'liquido')
-              return (
-                <g key={i} transform={`translate(${sx} ${sy})`}>
-                  <ellipse rx={r * 1.1} ry={r * 0.85} fill={ing.color} opacity={0.88} transform={`rotate(${i * 40})`} />
-                  <ellipse cx={-r * 0.3} cy={-r * 0.25} rx={r * 0.4} ry={r * 0.18} fill="#fff" opacity={0.35} transform={`rotate(${i * 40})`} />
-                </g>
-              );
+            const r = ing.tipo === 'polvo' ? 40 + 135 * Math.sqrt(s.w) : 46 + 170 * Math.sqrt(s.w);
+            if (ing.tipo === 'polvo') return <Monton key={i} x={sx} y={sy} r={r} k={s.k} frame={frame} semilla={i} />;
+            if (ing.tipo === 'liquido') return <Charco key={i} x={sx} y={sy} r={r * 1.1} k={s.k} frame={frame} semilla={i} />;
             return (
               <g key={i} transform={`translate(${sx} ${sy})`}>
-                {Array.from({length: s.k === 'limon' ? 18 : 5}).map((__, j) => {
-                  const ax = (rnd(j + i * 3) - 0.5) * r * 1.4, ay = (rnd(j + i * 3 + 7) - 0.5) * r * 1.4;
-                  return s.k === 'limon' ? (
-                    <rect key={j} x={ax} y={ay} width={18} height={5} rx={2} fill="#f2c92a" transform={`rotate(${j * 47} ${ax} ${ay})`} />
-                  ) : (
-                    <rect key={j} x={ax - 24} y={ay - 24} width={48} height={48} rx={8} fill={ing.color} stroke={oscurece(ing.color, 0.08)} strokeWidth={3} />
+                {Array.from({length: s.k === 'limon' ? 22 : s.k === 'chocolate' ? 7 : 5}).map((__, j) => {
+                  const ax = (rnd(j + i * 3) - 0.5) * r * 1.3, ay = (rnd(j + i * 3 + 7) - 0.5) * r * 1.3;
+                  if (s.k === 'limon') return <rect key={j} x={ax} y={ay} width={20} height={5} rx={2.5} fill="#f2c92a" transform={`rotate(${j * 47} ${ax} ${ay})`} />;
+                  const lado = s.k === 'chocolate' ? 40 : 48;
+                  return (
+                    <g key={j} transform={`translate(${ax} ${ay}) rotate(${j * 31})`}>
+                      <rect x={-lado / 2 + 5} y={-lado / 2 + 7} width={lado} height={lado} rx={7} fill="#2a1408" opacity={0.18} />
+                      <rect x={-lado / 2} y={-lado / 2} width={lado} height={lado} rx={7} fill={s.k === 'chocolate' ? '#4a2617' : ing.color} />
+                      <rect x={-lado / 2 + 5} y={-lado / 2 + 5} width={lado - 18} height={8} rx={4} fill="#fff" opacity={s.k === 'chocolate' ? 0.18 : 0.45} />
+                    </g>
                   );
                 })}
               </g>
@@ -651,7 +639,7 @@ export const Bizcocho: React.FC<{e: Estado; miga: string; frame: number; tFuera:
   const c = e.corte;
   // la porción: cuña de 44° hacia abajo a la derecha; sale, se tumba y enseña la miga
   const a1 = (25 * Math.PI) / 180, a2 = (69 * Math.PI) / 180;
-  const sale = suave(clamp(c / 0.55)) * 170;
+  const sale = suave(clamp(c / 0.55)) * 130;
   const tumba = suave(clamp((c - 0.5) / 0.5));
   const bis = (a1 + a2) / 2;
   const pastel = c > 0.001 ? `M0,0 L${Math.cos(a2) * R},${Math.sin(a2) * R} A${R},${R} 0 1 1 ${Math.cos(a1) * R},${Math.sin(a1) * R} Z` : '';
@@ -710,7 +698,7 @@ export const Bizcocho: React.FC<{e: Estado; miga: string; frame: number; tFuera:
             <path d={`M0,0 L${Math.cos(a1) * R},${Math.sin(a1) * R}`} stroke={miga} strokeWidth={16} strokeLinecap="round" />
           </g>
           {/* tumbada: se ve la miga con sus alveolos y la corteza */}
-          <g opacity={tumba} transform={`translate(${Math.cos(bis) * 60} ${Math.sin(bis) * 40}) rotate(${-20})`}>
+          <g opacity={tumba} transform={`translate(${Math.cos(bis) * 20} ${Math.sin(bis) * 10}) rotate(${-20}) scale(0.85)`}>
             <path d={`M-20,-120 L230,-60 L230,70 L-20,70 Z`} fill="#2a1408" opacity={0.18} transform="translate(12 16)" />
             <path d="M-20,-120 L230,-60 L230,70 L-20,70 Z" fill={miga} />
             {Array.from({length: 22}).map((_, i) => (
@@ -758,3 +746,217 @@ export const ChorroLiquido: React.FC<{x0: number; y0: number; x1: number; y1: nu
   );
 };
 
+/** Contorno orgánico (círculo con ondas suaves) */
+export const blob = (r: number, n: number, semilla: number, amp = 0.12) => {
+  const pts = Array.from({length: 48}).map((_, i) => {
+    const a = (i / 48) * Math.PI * 2;
+    const rr = r * (1 + amp * Math.sin(a * n + semilla * 1.7) * 0.6 + amp * 0.4 * Math.sin(a * (n + 3) + semilla));
+    return `${i ? 'L' : 'M'}${(Math.cos(a) * rr).toFixed(1)},${(Math.sin(a) * rr).toFixed(1)}`;
+  });
+  return pts.join(' ') + ' Z';
+};
+
+/** Montón de polvo (harina, azúcar, cacao, levadura): mate y esponjoso, con sombra y textura; el azúcar brilla */
+export const Monton: React.FC<{x: number; y: number; r: number; k: string; frame: number; semilla: number}> = ({x, y, r, k, frame, semilla}) => {
+  const base = k === 'cacao' ? '#6b3d27' : k === 'azucar' ? '#fbfaf6' : '#f6f0e3';
+  const sombra = k === 'cacao' ? '#3e2214' : k === 'azucar' ? '#c9d3d8' : '#d8cdb8';
+  const id = `c-monton-${k}`;
+  return (
+    <g transform={`translate(${x} ${y})`}>
+      <defs>
+        <radialGradient id={id} cx="0.4" cy="0.38" r="0.7">
+          <stop offset="0" stopColor={aclara(base, 0.5)} />
+          <stop offset="0.55" stopColor={base} />
+          <stop offset="1" stopColor={sombra} />
+        </radialGradient>
+      </defs>
+      <path d={blob(r * 1.12, 6, semilla + 2, 0.1)} fill="#2a1408" opacity={0.1} transform="translate(10 14)" />
+      <path d={blob(r, 5, semilla, 0.14)} fill={`url(#${id})`} />
+      {/* polvo suelto alrededor */}
+      {Array.from({length: 22}).map((_, j) => {
+        const a = rnd(j * 3 + semilla) * Math.PI * 2;
+        const d = r * (0.95 + rnd(j * 3 + 1 + semilla) * 0.35);
+        return <circle key={j} cx={Math.cos(a) * d} cy={Math.sin(a) * d} r={2 + rnd(j) * 4} fill={base} opacity={0.75} />;
+      })}
+      {/* textura del grano */}
+      {Array.from({length: 30}).map((_, j) => {
+        const a = rnd(j * 5 + 11 + semilla) * Math.PI * 2;
+        const d = Math.sqrt(rnd(j * 5 + 12)) * r * 0.85;
+        return <circle key={`g${j}`} cx={Math.cos(a) * d} cy={Math.sin(a) * d} r={1.5 + rnd(j + 4) * 2.5} fill={j % 2 ? sombra : aclara(base, 0.6)} opacity={0.55} />;
+      })}
+      {k === 'azucar' &&
+        Array.from({length: 9}).map((_, j) => {
+          const a = rnd(j * 7 + 3) * Math.PI * 2;
+          const d = Math.sqrt(rnd(j * 7 + 4)) * r * 0.8;
+          const b = 0.4 + 0.6 * Math.abs(Math.sin(frame * 0.15 + j * 1.3));
+          const px = Math.cos(a) * d, py = Math.sin(a) * d;
+          return <path key={`b${j}`} d={`M${px - 9},${py} L${px + 9},${py} M${px},${py - 9} L${px},${py + 9}`} stroke="#fff" strokeWidth={3} strokeLinecap="round" opacity={b} />;
+        })}
+      <ellipse cx={-r * 0.28} cy={-r * 0.32} rx={r * 0.35} ry={r * 0.22} fill="#fff" opacity={k === 'cacao' ? 0.12 : 0.35} />
+    </g>
+  );
+};
+
+/** Charco de líquido en el bol: aceite dorado translúcido, yogur cremoso, leche fina */
+export const Charco: React.FC<{x: number; y: number; r: number; k: string; frame: number; semilla: number}> = ({x, y, r, k, frame, semilla}) => {
+  const ond = Math.sin(frame * 0.08 + semilla) * 0.02;
+  if (k === 'aceite')
+    return (
+      <g transform={`translate(${x} ${y}) scale(${1 + ond})`}>
+        <path d={blob(r, 4, semilla, 0.18)} fill="#fff3c4" opacity={0.28} />
+        <path d={blob(r, 4, semilla, 0.18)} fill="none" stroke="#d9a21e" strokeWidth={4} opacity={0.55} />
+        <path d={blob(r * 0.62, 3, semilla + 2, 0.22)} fill="none" stroke="#e8b42e" strokeWidth={3} opacity={0.35} />
+        {[0, 1, 2].map((j) => (
+          <path key={j} d={`M${-r * (0.6 - j * 0.15)},${-r * (0.1 + j * 0.12)} C${-r * (0.4 - j * 0.1)},${-r * (0.5 - j * 0.05)} ${r * 0.1},${-r * (0.6 - j * 0.1)} ${r * (0.35 - j * 0.05)},${-r * (0.45 - j * 0.12)}`} stroke="#fffdf2" strokeWidth={10 - j * 3} fill="none" strokeLinecap="round" opacity={0.85 - j * 0.2} />
+        ))}
+        {[[0.35, 0.2, 11], [-0.2, 0.38, 8], [0.1, 0.5, 6], [0.45, -0.1, 5]].map(([fx, fy, rr], j) => (
+          <circle key={`g${j}`} cx={r * fx} cy={r * fy} r={rr} fill="#fff8d8" stroke="#d9a21e" strokeWidth={2} opacity={0.8} />
+        ))}
+      </g>
+    );
+  const color = k === 'chocolate' ? '#4e2a1a' : k === 'leche' ? '#fffdf9' : '#fffbf3';
+  const borde = k === 'chocolate' ? '#2e170d' : '#d9d4c8';
+  return (
+    <g transform={`translate(${x} ${y}) scale(${1 + ond})`}>
+      <path d={blob(r * 1.05, 5, semilla + 1, 0.14)} fill="#2a1408" opacity={0.08} transform="translate(6 10)" />
+      <path d={blob(r, 5, semilla, 0.14)} fill={color} opacity={k === 'leche' ? 0.85 : 1} />
+      <path d={blob(r, 5, semilla, 0.14)} fill="none" stroke={borde} strokeWidth={4} opacity={0.6} />
+      {k === 'yogur' &&
+        [0.75, 0.5, 0.28].map((f, j) => (
+          <path key={j} d={`M${-r * f},0 A${r * f},${r * f} 0 0 1 ${r * f * 0.7},${-r * f * 0.7}`} stroke="#ece6d8" strokeWidth={7} fill="none" strokeLinecap="round" transform={`rotate(${j * 70 + semilla * 20})`} />
+        ))}
+      <ellipse cx={-r * 0.3} cy={-r * 0.35} rx={r * 0.32} ry={r * 0.12} fill="#fff" opacity={k === 'chocolate' ? 0.22 : 0.7} transform={`rotate(-25 ${-r * 0.3} ${-r * 0.35})`} />
+    </g>
+  );
+};
+
+/**
+ * Recipiente levantado e inclinado, visto desde arriba. Dibujado con la boca hacia +x (hacia el bol);
+ * inc = 0…1 cuánto se inclina (se acorta en perspectiva y el contenido corre hacia la boca).
+ * Devuelve también dónde está la boca, en coordenadas locales.
+ */
+export const bocaVertedor = (k: string) => (k === 'aceite' ? 230 : k === 'harina' ? 150 : k === 'levadura' ? 95 : k === 'yogur' || k === 'leche' ? 95 : 120);
+
+export const Vertedor: React.FC<{k: string; inc: number; lleno: number; ang?: number}> = ({k, inc, lleno, ang = 0}) => {
+  // si el recipiente apunta hacia la izquierda, el texto quedaría del revés: se le da la vuelta
+  const alReves = Math.cos((ang * Math.PI) / 180) < -0.2;
+  const leer = (x: number, y: number) => (alReves ? `rotate(180 ${x} ${y})` : undefined);
+  const sx = 1 - 0.32 * inc;
+  const corre = inc * 0.6; // el contenido se va hacia la boca
+  if (k === 'aceite')
+    return (
+      <g transform={`scale(${sx} 1)`}>
+        <path d="M-150,-60 L70,-60 C100,-60 115,-30 150,-24 L230,-20 L230,20 L150,24 C115,30 100,60 70,60 L-150,60 C-175,60 -185,40 -185,0 C-185,-40 -175,-60 -150,-60 Z" fill="#dfe9d6" opacity={0.6} />
+        <path d={`M${-180 + 260 * corre},-48 L70,-48 C95,-40 110,-24 140,-18 L225,-14 L225,14 L140,18 C110,24 95,40 70,48 L${-180 + 260 * corre},48 Z`} fill="#e3b236" opacity={0.85 * Math.max(0.3, lleno)} />
+        <rect x={-120} y={-44} width={130} height={88} rx={6} fill="#f4ecdb" opacity={0.92} />
+        <text x={-55} y={10} textAnchor="middle" fontFamily="Playfair Display" fontStyle="italic" fontWeight={700} fontSize={30} fill="#3f6b3a" transform={leer(-55, 0)}>
+          Aceite
+        </text>
+        <path d="M-160,-36 L60,-36" stroke="#fff" strokeWidth={9} strokeLinecap="round" opacity={0.5} />
+        <ellipse cx={230} cy={0} rx={8} ry={20} fill="#c99117" />
+      </g>
+    );
+  if (k === 'harina' || k === 'levadura') {
+    const L = k === 'harina' ? 150 : 95, A = k === 'harina' ? 140 : 90;
+    return (
+      <g transform={`scale(${sx} 1)`}>
+        <rect x={-L} y={-A} width={L * 2} height={A * 2} rx={12} fill={k === 'harina' ? 'url(#c-kraft)' : '#f4f0e6'} />
+        {k === 'harina' ? (
+          <>
+            <path d={`M${-L + 20},${-A + 10} L${-L + 20},${A - 10}`} stroke="#9c7748" strokeWidth={4} opacity={0.5} />
+            <path d={`M${-L + 60},${-A} L${-L + 50},${A}`} stroke="#c9a46f" strokeWidth={10} opacity={0.4} />
+            <rect x={-L + 70} y={-A * 0.55} width={L * 0.95} height={A * 1.1} rx={8} fill="#f4ecdb" />
+            <text x={-L + 70 + L * 0.475} y={14} textAnchor="middle" fontFamily="Playfair Display" fontStyle="italic" fontWeight={700} fontSize={40} fill="#6e4423" transform={leer(-L + 70 + L * 0.475, 0)}>
+              Harina
+            </text>
+          </>
+        ) : (
+          <>
+            <rect x={-L} y={-28} width={L * 1.4} height={56} fill="#c8473c" />
+            <text x={-L + L * 0.7} y={12} textAnchor="middle" fontFamily="Montserrat" fontWeight={800} fontSize={24} fill="#fff" transform={leer(-L + L * 0.7, 0)}>
+              LEVADURA
+            </text>
+          </>
+        )}
+        {/* boca abierta hacia el bol, con el polvo asomando */}
+        <path d={`M${L - 40},${-A} L${L + 18},${-A - 14} L${L + 18},${A + 14} L${L - 40},${A} Z`} fill={k === 'harina' ? '#a6814f' : '#d9d0bf'} />
+        <path d={`M${L - 30},${-A + 14} L${L + 12},${-A + 4} L${L + 12},${A - 4} L${L - 30},${A - 14} Z`} fill="#f9f4ea" opacity={0.4 + 0.6 * lleno} />
+        {Array.from({length: 12}).map((_, i) => (
+          <circle key={i} cx={L - 20 + rnd(i) * 30} cy={-A + 20 + rnd(i + 5) * (A * 2 - 40)} r={3 + rnd(i + 2) * 4} fill="#fff" opacity={0.8 * lleno} />
+        ))}
+      </g>
+    );
+  }
+  // tarro, cuenco o vaso: un círculo que se acorta al inclinarse, con el contenido corriendo hacia la boca
+  const R = k === 'yogur' ? 90 : k === 'leche' ? 100 : k === 'cacao' ? 95 : 120;
+  const borde = k === 'yogur' ? '#5b8fc2' : k === 'azucar' || k === 'leche' ? '#e7eef0' : '#efe5d4';
+  const dentro = k === 'cacao' ? '#5c3320' : k === 'yogur' ? '#fffdf9' : k === 'leche' ? '#fffefb' : k === 'chocolate' ? '#4e2a1a' : k === 'mantequilla' ? '#f6d873' : k === 'limon' ? '#f2d33a' : '#fbfaf6';
+  return (
+    <g transform={`scale(${sx} 1)`}>
+      <circle r={R} fill={borde} />
+      <circle r={R - 12} fill="#f7f4ee" opacity={0.9} />
+      <ellipse cx={R * corre * 0.9} cy={0} rx={(R - 16) * (1 - corre * 0.45)} ry={(R - 16) * (1 - corre * 0.15)} fill={dentro} opacity={0.35 + 0.65 * lleno} />
+      {k === 'azucar' &&
+        Array.from({length: 16}).map((_, i) => (
+          <rect key={i} x={R * corre * 0.9 + (rnd(i) - 0.5) * R} y={(rnd(i + 3) - 0.5) * R * 1.2} width={6} height={6} fill="#fff" stroke="#d8e4ea" strokeWidth={1.2} opacity={lleno} />
+        ))}
+      <circle r={R} fill="none" stroke="#fff" strokeWidth={7} opacity={0.6} />
+      <path d={`M${R - 4},-22 L${R + 22},0 L${R - 4},22 Z`} fill={borde} />
+      {k === 'yogur' && <path d={`M${-R * 0.2},${-R - 10} C${-R * 0.9},${-R * 1.4} ${-R * 1.4},${-R * 0.6} ${-R * 1.1},${-R * 0.1}`} stroke="#cfd6dc" strokeWidth={16} fill="none" strokeLinecap="round" />}
+    </g>
+  );
+};
+
+/** Cascada de polvo: densa en la boca, se abre al caer, nube al llegar */
+export const Cascada: React.FC<{x0: number; y0: number; x1: number; y1: number; color: string; frame: number; o: number}> = ({x0, y0, x1, y1, color, frame, o}) => {
+  const dx = x1 - x0, dy = y1 - y0, l = Math.hypot(dx, dy) || 1;
+  const nx = -dy / l, ny = dx / l;
+  return (
+    <g opacity={o}>
+      <path d={`M${x0 + nx * 16},${y0 + ny * 16} L${x1 + nx * 50},${y1 + ny * 50} L${x1 - nx * 50},${y1 - ny * 50} L${x0 - nx * 16},${y0 - ny * 16} Z`} fill={color} opacity={0.22} />
+      {Array.from({length: 90}).map((_, i) => {
+        const u = (frame * 0.06 + i / 90) % 1;
+        const lado = (rnd(i * 3) - 0.5) * (18 + 80 * u);
+        return <circle key={i} cx={lerp(x0, x1, u) + nx * lado} cy={lerp(y0, y1, u) + ny * lado} r={lerp(7, 4, u) * (0.6 + rnd(i) * 0.8)} fill={color} opacity={0.95 - u * 0.35} />;
+      })}
+      {Array.from({length: 16}).map((_, i) => {
+        const u = (frame * 0.04 + i / 16) % 1;
+        const a = (i / 16) * Math.PI * 2 + rnd(i) * 0.5;
+        return <circle key={`n${i}`} cx={x1 + Math.cos(a) * (30 + 90 * u)} cy={y1 + Math.sin(a) * (30 + 90 * u)} r={10 + 14 * u} fill={color} opacity={0.35 * (1 - u)} />;
+      })}
+    </g>
+  );
+};
+
+/** Chorro de líquido con ondas donde cae */
+export const Chorro: React.FC<{x0: number; y0: number; x1: number; y1: number; color: string; frame: number; o: number; ancho: number; espeso?: boolean}> = ({x0, y0, x1, y1, color, frame, o, ancho, espeso}) => {
+  const mx = (x0 + x1) / 2 + Math.sin(frame * 0.3) * (espeso ? 4 : 9), my = (y0 + y1) / 2;
+  return (
+    <g opacity={o}>
+      {!espeso &&
+        [0, 1, 2].map((i) => {
+          const u = (frame * 0.035 + i / 3) % 1;
+          return <circle key={i} cx={x1} cy={y1} r={ancho + 120 * u} fill="none" stroke={aclara(color, 0.4)} strokeWidth={5} opacity={0.6 * (1 - u)} />;
+        })}
+      {espeso &&
+        [0, 1, 2].map((i) => <circle key={i} cx={x1 + Math.cos(frame * 0.2 + i * 2) * 14} cy={y1 + Math.sin(frame * 0.2 + i * 2) * 14} r={ancho * (1.3 - i * 0.3)} fill={color} stroke={oscurece(color, 0.08)} strokeWidth={3} />)}
+      <path d={`M${x0},${y0} Q${mx},${my} ${x1},${y1}`} stroke={oscurece(color, 0.12)} strokeWidth={ancho + 6} fill="none" strokeLinecap="round" />
+      <path d={`M${x0},${y0} Q${mx},${my} ${x1},${y1}`} stroke={color} strokeWidth={ancho} fill="none" strokeLinecap="round" />
+      <path d={`M${x0 - 3},${y0 - 3} Q${mx - 4},${my - 4} ${x1 - 3},${y1 - 3}`} stroke="#fff" strokeWidth={Math.max(3, ancho * 0.28)} fill="none" strokeLinecap="round" opacity={0.55} />
+    </g>
+  );
+};
+
+/** Trozos sólidos que caen (mantequilla, chocolate, ralladura) */
+export const Trozos: React.FC<{x0: number; y0: number; x1: number; y1: number; k: string; frame: number; o: number}> = ({x0, y0, x1, y1, k, frame, o}) => (
+  <g opacity={o}>
+    {Array.from({length: k === 'limon' ? 26 : 7}).map((_, i) => {
+      const u = (frame * (k === 'limon' ? 0.05 : 0.035) + i / (k === 'limon' ? 26 : 7)) % 1;
+      const lado = (rnd(i * 5) - 0.5) * 60;
+      const x = lerp(x0, x1, u) + lado * u, y = lerp(y0, y1, u) + lado * 0.5 * u;
+      if (k === 'limon') return <rect key={i} x={x} y={y} width={18} height={5} rx={2.5} fill="#f2c92a" transform={`rotate(${i * 47 + frame * 4} ${x} ${y})`} />;
+      const s = lerp(46, 30, u);
+      return <rect key={i} x={x - s / 2} y={y - s / 2} width={s} height={s} rx={6} fill={k === 'chocolate' ? '#4a2617' : '#f6d873'} stroke={k === 'chocolate' ? '#2e170d' : '#e0bf5a'} strokeWidth={3} transform={`rotate(${i * 40 + u * 120} ${x} ${y})`} />;
+    })}
+  </g>
+);

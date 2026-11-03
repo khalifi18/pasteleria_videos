@@ -234,6 +234,16 @@ if (args.includes('--hoja')) {
   const cols = 4, rows = Math.ceil(frames.length / cols);
   execFileSync('ffmpeg', ['-v', 'error', '-y', '-i', path.join(hd, 'h_%02d.jpg'), '-vf', `tile=${cols}x${rows}:padding=6:color=white`, '-frames:v', '1', path.join(out, 'hoja.jpg')]);
   console.log(`OK · hoja con ${frames.length} fotogramas → ${path.join(out, 'hoja.jpg')}`);
+} else if (args.includes('--tira')) {
+  // --tira 3.2,3.6,4.0 → out/tira.jpg con esos instantes (segundos) en fila, para revisar un movimiento
+  const ts = args[args.indexOf('--tira') + 1].split(',').map(Number);
+  const hd = path.join(out, 'tira');
+  fs.mkdirSync(hd, {recursive: true});
+  for (const f of fs.readdirSync(hd)) fs.unlinkSync(path.join(hd, f));
+  for (let i = 0; i < ts.length; i++) await still(ts[i] * FPS, path.join(hd, `t_${String(i).padStart(2, '0')}.jpg`), {}, 0.3);
+  const cols = Math.min(6, ts.length), rows = Math.ceil(ts.length / cols);
+  execFileSync('ffmpeg', ['-v', 'error', '-y', '-i', path.join(hd, 't_%02d.jpg'), '-vf', `tile=${cols}x${rows}:padding=6:color=white`, '-frames:v', '1', path.join(out, 'tira.jpg')]);
+  console.log(`OK · tira con ${ts.length} fotogramas → ${path.join(out, 'tira.jpg')}`);
 } else if (args.includes('--portada')) {
   await portada();
   console.log(`OK · ${path.join(out, 'portada.jpg')}`);
