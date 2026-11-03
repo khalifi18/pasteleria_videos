@@ -121,6 +121,16 @@ if (modo === 'hikma') {
     const b = k === n - 1 ? durF : Math.round(((k + 1) * durF) / n) + 12;
     return {texto: '', a, b, clip: preparar(f.clip.archivo, ((b - a) / FPS + 0.4).toFixed(2), `fondo-${k}`)};
   });
+} else if (modo === 'infografia') {
+  // La cámara recorre la infografía; encima solo van sus vídeos [mio] y las tarjetas [texto]
+  planos = [];
+  lineas.forEach((l, i) => {
+    if (l.busqueda === 'texto' || l.busqueda.startsWith('mio')) {
+      let j = i;
+      while (j + 1 < lineas.length && ['=', 'sigue'].includes(lineas[j + 1].busqueda)) j++;
+      planos.push({li: i, ...plano(i, desde(i), hasta(j))});
+    }
+  });
 } else if (modo === 'cocina') {
   // Mundo dibujado de la cocina: la cámara viaja por él. Encima solo van sus vídeos [mio] y las tarjetas [texto].
   planos = [];
@@ -154,6 +164,34 @@ if (finVoz > 90) console.log(`AVISO · la voz dura ${finVoz.toFixed(0)} s: el m�
 const donde = (lineas.recetaEn || cfg.receta_en || 'descripcion').startsWith('com') ? 'en el primer comentario' : 'en la descripción';
 const aviso = lineas.aviso ? `Receta completa ${donde}` : null;
 const props = {audio: null, modo, idioma: lineas.idioma, aviso, firma: cfg.firma, cierre: cfg.cierre, finVoz, duracion, lineas: lineasProps, planos, pov: pov || modo === 'hikma' ? lineas.pov || '' : null, color: lineas.color, elemento: lineas.elemento};
+if (modo === 'infografia') {
+  if (!lineas.imagen) fallo('falta "# imagen: archivo.jpg" (la infografía, dentro de la carpeta del vídeo)');
+  const img = path.join(dir, lineas.imagen);
+  if (!fs.existsSync(img)) fallo(`no existe ${lineas.imagen} en la carpeta del vídeo`);
+  const [iw, ih] = execFileSync('ffprobe', ['-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=width,height', '-of', 'csv=p=0', img]).toString().trim().split(',').map(Number);
+  // copia ampliada x2 (lanczos + enfoque suave): al acercarse la cámara se ve mucho más nítida
+  fs.mkdirSync(path.join(pub, 'infografias'), {recursive: true});
+  const dst = path.join(pub, 'infografias', `${slug}.png`);
+  const firmaImg = `${fs.statSync(img).size}|${lineas.imagen}`;
+  if (!fs.existsSync(dst) || !fs.existsSync(dst + '.txt') || fs.readFileSync(dst + '.txt', 'utf8') !== firmaImg) {
+    execFileSync('ffmpeg', ['-v', 'error', '-y', '-i', img, '-vf', `scale=${iw * 2}:${ih * 2}:flags=lanczos,unsharp=5:5:0.7:5:5:0`, dst]);
+    fs.writeFileSync(dst + '.txt', firmaImg);
+  }
+  let previa = null;
+  const tramos = lineas.map((l, i) => {
+    const b = (l.busqueda || 'sigue').split(/\s+/)[0];
+    let zona = previa;
+    if (['todo', 'general', 'toda'].includes(b)) zona = null;
+    else if (!['sigue', '=', 'mio', 'texto'].includes(b)) {
+      const z = lineas.zonas[b];
+      if (!z) fallo(`línea ${i + 1}: la zona [${b}] no está definida (# zona ${b}: x y ancho alto)`);
+      zona = {x: (z.x / 100) * iw, y: (z.y / 100) * ih, w: (z.w / 100) * iw, h: (z.h / 100) * ih};
+    }
+    previa = zona;
+    return {zona, ini: tiempos[i].ini};
+  });
+  props.infografia = {src: `infografias/${slug}.png`, iw, ih, tramos, fin: finVoz};
+}
 if (modo === 'cocina') {
   // ingrediente escrito de muchas formas → pieza dibujada (igual que piezaDe en src/cocina/estado.ts)
   const piezaDe = (txt) => {

@@ -1,0 +1,26 @@
+# receta: tarta de Lotus (sin horno) · cantidades y pasos sacados de su infografía
+# formato: infografia
+# idioma: es
+# imagen: lotus.jpg
+# zona tarta: 46 3 54 28
+# zona base: 2 33 24 18
+# zona crema: 25.5 31.5 21 23.5
+# zona cobertura: 46.5 32 20 18.5
+# zona decorar: 66 33 22 19
+# zona paso1: 1 55 17 24
+# zona paso2: 18 55 17 24
+# zona paso3: 34.5 55 17 24
+# zona paso4: 51 55 16 24
+# zona paso5: 66.5 55 16.5 24
+# zona paso6: 82 55 17.5 24
+# zona porcion: 20 77 33 21
+[tarta] La tarta de Lotus más cremosa… y *sin horno*.
+[base] La base: galletas Lotus trituradas con *mantequilla derretida*.
+[paso1] Al molde, bien presionada, y treinta minutos a la nevera.
+[crema] La crema: nata, queso crema, crema Lotus y azúcar glas.
+[paso2] Monta la nata y mézclala *con movimientos envolventes*.
+[paso3] Sobre la base, alisa, y a la nevera *mínimo cuatro horas*.
+[paso4] La cobertura: crema Lotus con nata caliente, hasta que brille.
+[paso5] Viértela sobre la tarta fría.
+[paso6] Y decora con rosetones y galletas.
+[porcion] ¿Te atreves con ella? La receta completa, en la descripción.

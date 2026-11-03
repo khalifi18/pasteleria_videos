@@ -37,7 +37,7 @@ export function leerGuion(dir) {
   const lista = (s) => (s ? s.split(',').map((x) => x.trim().toLowerCase()).filter(Boolean) : null);
   const fondo = lista(cab('fondo'));
   const pov = cab('pov');
-  const ALIAS = {receta: 'leccion', 'mis-clips': 'leccion', truco: 'hikma', hikmah: 'hikma', error: 'hikma'};
+  const ALIAS = {infografía: 'infografia', 'infografia-viva': 'infografia', receta: 'leccion', 'mis-clips': 'leccion', truco: 'hikma', hikmah: 'hikma', error: 'hikma'};
   const nombre = (cab('formato') || (fondo ? 'pov' : 'receta')).toLowerCase().split(/\s/)[0];
   const formato = ALIAS[nombre] || nombre;
   const idioma = /^es/i.test(cab('idioma') || '') ? 'es' : 'darija';
@@ -60,7 +60,7 @@ export function leerGuion(dir) {
         l = m[2];
       }
     }
-    if (formato === 'cocina' && !busqueda) busqueda = 'sigue';
+    if ((formato === 'cocina' || formato === 'infografia') && !busqueda) busqueda = 'sigue';
     if (formato === 'leccion') {
       if (!busqueda) busqueda = ambiente[n++ % ambiente.length];
       if (busqueda === '=' && !lineas.length) busqueda = ambiente[n++ % ambiente.length];
@@ -83,6 +83,13 @@ export function leerGuion(dir) {
   lineas.idioma = idioma;
   lineas.ingredientes = ingredientes;
   lineas.mesa = lista(cab('mesa'));
+  // infografía: # imagen: archivo.jpg  y  # zona nombre: x y ancho alto (en % de la imagen)
+  lineas.imagen = cab('imagen');
+  lineas.zonas = {};
+  for (const f of filas) {
+    const m = f.match(/^#\s*zona\s+([\w-]+)\s*:\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)/i);
+    if (m) lineas.zonas[m[1].toLowerCase()] = {x: +m[2], y: +m[3], w: +m[4], h: +m[5]};
+  }
   // dónde está la receta completa (pisa a config.json) · "# aviso: no" lo quita en este vídeo
   lineas.recetaEn = (cab('receta-en') || '').toLowerCase() || null;
   lineas.aviso = !/^no/i.test(cab('aviso') || '');

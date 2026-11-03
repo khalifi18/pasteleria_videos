@@ -16,10 +16,12 @@ voice_id, díselo con estas palabras: "falta configurar la voz; pídele a Ayoub 
 | Formato | Cuándo | Cabecera del guion |
 |---|---|---|
 | **cocina** (el principal) | enseñar una receta paso a paso: cocina dibujada y cámara que viaja | `# formato: cocina` · `# ingredientes: …; …` — lee SIEMPRE `guias/cocina.md` |
+| **infografia** (la más rápida) | cualquier receta de la que tenga infografía, también las complicadas: la cámara recorre su infografía | `# formato: infografia` · `# imagen: receta.jpg` · `# zona …` — lee SIEMPRE `guias/infografia.md` |
 | **receta** | cuando ella tiene vídeos de casi todos los pasos | `# formato: receta` · `# ingredientes: …; …` |
 | **truco** | un error común o un consejo rápido | `# formato: truco` · `# pov: POV: …` · `# color: chocolate` · `# elemento: bizcocho` |
 | **historia** | el origen de un dulce (máx. 1 por semana) | `# formato: historia` — lee `guias/historia.md` |
 
+- Si te manda una **infografía**, propón el formato infografia (sale en el día). Cocina, para las recetas sencillas que quiera más trabajadas.
 - En **cocina**, si ella manda vídeos suyos, úsalos con `[mio …]` sobre todo al final (el dulce real cortado).
 - Colores truco: chocolate, vainilla, fresa, pistacho, terracota, arena, rosa, ciruela, noche, verde, azul.
   Elementos: bizcocho, magdalena, batidor, huevo, te, corazon, estrella, hoja, luna, vela.
