@@ -4,10 +4,11 @@
   "cierre": "Guárdala para hacerla este finde",
   "receta_en": "descripcion",
   "voz": {
-    "voice_id": "PEGAR_AQUI_EL_VOICE_ID",
+    "voice_id": "ugVysa6SU3kBjf7zmeSV",
     "model_id": "eleven_v4",
     "stability": 0.5,
     "similarity_boost": 0.75,
-    "speed": 1.0
+    "speed": 1.0,
+    "language_code": "es"
   }
 }

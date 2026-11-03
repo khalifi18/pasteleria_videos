@@ -5,6 +5,7 @@ import {rnd} from '../dibujos/base';
 import {Batidor, Espatula, Ingrediente, Monton, blob} from '../cocina/piezas';
 import {aclara, oscurece, piezaDe} from '../cocina/estado';
 import {Tarta, color, io} from './datos';
+import {DefsRealismo, GalletaLotus, Migas, Roseton, RosetonArriba} from './realismo';
 
 const clamp = (x: number, a = 0, b = 1) => Math.min(b, Math.max(a, x));
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
@@ -13,19 +14,10 @@ const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,
 // ---------------- Iconos de ingredientes (dibujados en ~r150, se escalan al usarlos) ----------------
 const Galletas: React.FC = () => (
   <g>
-    {[[-40, 30, -12], [30, -10, 8], [-10, -40, -4]].map(([x, y, a], i) => (
+    <DefsRealismo />
+    {[[-40, 34, -12], [34, -6, 10], [-6, -40, -4]].map(([x, y, a], i) => (
       <g key={i} transform={`translate(${x} ${y}) rotate(${a})`}>
-        <rect x={-96} y={-62} width={192} height={124} rx={22} fill="#2a1408" opacity={0.15} transform="translate(8 12)" />
-        <rect x={-96} y={-62} width={192} height={124} rx={22} fill="#b8692f" />
-        <rect x={-84} y={-50} width={168} height={100} rx={16} fill="none" stroke="#8a4a1e" strokeWidth={4} />
-        {Array.from({length: 16}).map((_, j) => (
-          <circle key={j} cx={-80 + (j % 8) * 23} cy={j < 8 ? -56 : 56} r={6} fill="#9a5424" />
-        ))}
-        {i === 2 && (
-          <text x={0} y={14} textAnchor="middle" fontFamily="Playfair Display" fontStyle="italic" fontWeight={700} fontSize={40} fill="#8a4a1e">
-            Lotus
-          </text>
-        )}
+        <GalletaLotus w={190} h={124} texto={i === 2} />
       </g>
     ))}
   </g>
@@ -246,6 +238,7 @@ const Cazo: React.FC<{col: string; frame: number; calor: number}> = ({col, frame
 /** Tarta vista desde arriba con decoración (rosetones que aparecen uno a uno) */
 export const TartaArriba: React.FC<{tarta: Tarta; decor: number; frame: number; r?: number}> = ({tarta, decor, frame, r = 165}) => (
   <g>
+    <DefsRealismo />
     <ellipse cx={20} cy={26} rx={r + 60} ry={r + 50} fill="url(#c-sombra)" />
     <circle r={r + 44} fill="url(#c-ceramica)" />
     <circle r={r} fill={tarta.cobertura} />
@@ -257,20 +250,13 @@ export const TartaArriba: React.FC<{tarta: Tarta; decor: number; frame: number; 
       const a = (i / 12) * Math.PI * 2;
       return (
         <g key={i} transform={`translate(${Math.cos(a) * r * 0.8} ${Math.sin(a) * r * 0.8}) scale(${0.6 + 0.4 * io(ap)})`} opacity={ap}>
-          <circle r={22} fill={oscurece(tarta.decor, 0.1)} />
-          {Array.from({length: 6}).map((__, j) => (
-            <path key={j} d="M0,0 C8,-14 16,-18 22,-8" stroke={aclara(tarta.decor, 0.15)} strokeWidth={6} fill="none" transform={`rotate(${j * 60 + frame * 0})`} strokeLinecap="round" />
-          ))}
-          <circle cx={-5} cy={-6} r={5} fill="#fff" opacity={0.5} />
+          <RosetonArriba c={tarta.decor} r={22} giro={i * 0.5} />
         </g>
       );
     })}
     {tarta.galleta && decor > 0.5 && (
-      <g transform={`scale(${io((decor - 0.5) * 2)}) rotate(-8)`}>
-        <rect x={-62} y={-40} width={124} height={80} rx={14} fill="#b8692f" stroke="#8a4a1e" strokeWidth={4} />
-        <text x={0} y={10} textAnchor="middle" fontFamily="Playfair Display" fontStyle="italic" fontWeight={700} fontSize={28} fill="#8a4a1e">
-          Lotus
-        </text>
+      <g transform={`scale(${io((decor - 0.5) * 2)}) rotate(-8) scale(0.7)`}>
+        <GalletaLotus w={180} h={118} />
       </g>
     )}
   </g>
@@ -418,66 +404,102 @@ export const Ilustracion: React.FC<IlusProps> = ({op, a, vivo, frame, tarta}) =>
   );
 };
 
-// ---------------- Tarta de portada en 3/4 (capas y porción quitada) ----------------
+// ---------------- Tarta de portada en 3/4 (capas, porción quitada, cobertura que gotea) ----------------
+const lado = (rx: number, ry: number, y0: number, y1: number) => `M${-rx},${y0} A${rx},${ry} 0 0 0 ${rx},${y0} L${rx},${y1} A${rx},${ry} 0 0 1 ${-rx},${y1} Z`;
+
 export const TartaHero: React.FC<{tarta: Tarta; frame: number; aparece: number}> = ({tarta, frame, aparece}) => {
-  const rx = 330, ry = 120, h = 240, cy = 0;
-  const capas = [
-    {c: tarta.base, h: 0.2},
-    {c: tarta.relleno, h: 0.66},
-    {c: tarta.cobertura, h: 0.14},
-  ];
-  // porción quitada: cuña hacia el espectador, de -25° a 25° alrededor de 90° (abajo)
-  const a1 = (62 * Math.PI) / 180, a2 = (118 * Math.PI) / 180;
-  const px = (a: number) => Math.cos(a) * rx, py = (a: number) => Math.sin(a) * ry;
+  const rx = 330, ry = 118, h = 250;
+  const hBase = h * 0.22, hCob = h * 0.12;
+  const yCob = hCob, yBase = h - hBase;
+  const a1 = (64 * Math.PI) / 180, a2 = (116 * Math.PI) / 180;
+  const px = (a: number, r = rx) => Math.cos(a) * r, py = (a: number, r = ry) => Math.sin(a) * r;
   const flota = Math.sin(frame * 0.04) * 4;
-  let acc = 0;
+  // goteo de la cobertura por el lateral (sin la zona de la porción)
+  const goteo = (t0: number, t1: number, sem: number) => {
+    const N = 40;
+    const ida: string[] = [], vuelta: string[] = [];
+    for (let k = 0; k <= N; k++) {
+      const a = t0 + ((t1 - t0) * k) / N;
+      const largo = Math.max(0, Math.sin(a * 23 + sem) * 0.6 + Math.sin(a * 41 + sem * 2) * 0.4) * 46 * (0.4 + 0.6 * Math.sin(a));
+      ida.push(`${px(a).toFixed(1)},${(py(a) + hCob + largo).toFixed(1)}`);
+      vuelta.unshift(`${px(a).toFixed(1)},${py(a).toFixed(1)}`);
+    }
+    return `M${vuelta[vuelta.length - 1]} L${ida.join(' L')} L${vuelta.join(' L')} Z`;
+  };
+  const rosetones = Array.from({length: 13})
+    .map((_, i) => (i / 13) * Math.PI * 2 + 0.2)
+    .filter((a) => !(a > a1 - 0.18 && a < a2 + 0.18))
+    .sort((a, b) => Math.sin(a) - Math.sin(b)); // los de atrás primero
   return (
     <g transform={`translate(0 ${flota}) scale(${lerp(0.9, 1, io(aparece))})`} opacity={clamp(aparece * 2)}>
-      <ellipse cx={20} cy={h + 70} rx={rx + 120} ry={ry + 50} fill="url(#c-sombra)" />
-      <ellipse cx={0} cy={h + 30} rx={rx + 90} ry={ry + 40} fill="url(#c-ceramica)" />
-      {/* lateral por capas */}
-      {capas.map((cp, i) => {
-        const y0 = cy + h * (1 - acc - cp.h), y1 = cy + h * (1 - acc);
-        acc += cp.h;
-        return <path key={i} d={`M${-rx},${y0} A${rx},${ry} 0 0 0 ${rx},${y0} L${rx},${y1} A${rx},${ry} 0 0 1 ${-rx},${y1} Z`} fill={oscurece(cp.c, 0.08)} />;
+      <DefsRealismo />
+      <defs>
+        <clipPath id="th-lado">
+          <path d={lado(rx, ry, 0, h)} />
+        </clipPath>
+        <radialGradient id="th-top" cx="0.36" cy="0.3" r="0.75">
+          <stop offset="0" stopColor={aclara(tarta.cobertura, 0.28)} />
+          <stop offset="0.55" stopColor={tarta.cobertura} />
+          <stop offset="1" stopColor={oscurece(tarta.cobertura, 0.2)} />
+        </radialGradient>
+        <linearGradient id="th-gota" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor={tarta.cobertura} />
+          <stop offset="1" stopColor={oscurece(tarta.cobertura, 0.15)} />
+        </linearGradient>
+      </defs>
+      {/* plato */}
+      <ellipse cx={30} cy={h + 70} rx={rx + 150} ry={ry + 64} fill="url(#r-contacto)" opacity={0.8} />
+      <ellipse cx={0} cy={h + 34} rx={rx + 110} ry={ry + 48} fill="#cbbfae" />
+      <ellipse cx={0} cy={h + 26} rx={rx + 110} ry={ry + 46} fill="url(#r-plato)" />
+      <ellipse cx={0} cy={h + 26} rx={rx + 70} ry={ry + 30} fill="none" stroke="#e7ddcf" strokeWidth={6} />
+      <ellipse cx={0} cy={h + 8} rx={rx + 20} ry={ry + 16} fill="url(#r-contacto)" />
+      {/* lateral por capas, con textura y volumen */}
+      <g clipPath="url(#th-lado)">
+        <rect x={-rx} y={-ry} width={rx * 2} height={h + ry * 2} fill={tarta.relleno} filter="url(#r-cremoso)" />
+        <rect x={-rx} y={yBase} width={rx * 2} height={hBase + ry} fill={tarta.base} filter="url(#r-miga)" />
+        <rect x={-rx} y={yBase - 3} width={rx * 2} height={6} fill={oscurece(tarta.relleno, 0.15)} opacity={0.5} />
+        <rect x={-rx} y={-ry} width={rx * 2} height={h + ry * 2} fill="url(#r-lateral)" />
+      </g>
+      {/* hueco de la porción: caras interiores (la derecha en sombra, la izquierda iluminada) */}
+      <path d={`M0,0 L${px(a1)},${py(a1)} L${px(a1)},${py(a1) + h} L0,${h} Z`} fill={oscurece(tarta.relleno, 0.16)} filter="url(#r-cremoso)" />
+      <path d={`M0,${yBase} L${px(a1)},${py(a1) + yBase} L${px(a1)},${py(a1) + h} L0,${h} Z`} fill={oscurece(tarta.base, 0.2)} filter="url(#r-miga)" />
+      <path d={`M0,0 L${px(a2)},${py(a2)} L${px(a2)},${py(a2) + h} L0,${h} Z`} fill={aclara(tarta.relleno, 0.06)} filter="url(#r-cremoso)" />
+      <path d={`M0,${yBase} L${px(a2)},${py(a2) + yBase} L${px(a2)},${py(a2) + h} L0,${h} Z`} fill={tarta.base} filter="url(#r-miga)" />
+      <path d={`M0,0 L${px(a2)},${py(a2)} L${px(a2)},${py(a2) + yCob} L0,${yCob} Z`} fill={tarta.cobertura} />
+      <path d={`M0,0 L${px(a1)},${py(a1)} L${px(a1)},${py(a1) + yCob} L0,${yCob} Z`} fill={oscurece(tarta.cobertura, 0.2)} />
+      {/* burbujitas en el corte iluminado */}
+      {Array.from({length: 22}).map((_, i) => {
+        const u = 0.12 + rnd(i) * 0.8, v = 0.18 + rnd(i + 7) * 0.55;
+        return <ellipse key={i} cx={px(a2) * u} cy={py(a2) * u + h * v} rx={2 + rnd(i + 3) * 4} ry={1.5 + rnd(i + 5) * 2.5} fill={oscurece(tarta.relleno, 0.18)} opacity={0.55} />;
       })}
-      {/* hueco de la porción: se ven las capas por dentro */}
-      <path d={`M0,${cy} L${px(a1)},${py(a1) + cy} L${px(a1)},${py(a1) + cy + h} L0,${cy + h} Z`} fill={oscurece(tarta.relleno, 0.12)} />
-      <path d={`M0,${cy} L${px(a2)},${py(a2) + cy} L${px(a2)},${py(a2) + cy + h} L0,${cy + h} Z`} fill={tarta.relleno} />
-      <path d={`M0,${cy + h * 0.8} L${px(a2)},${py(a2) + cy + h * 0.8} L${px(a2)},${py(a2) + cy + h} L0,${cy + h} Z`} fill={tarta.base} />
-      <path d={`M0,${cy} L${px(a2)},${py(a2) + cy} L${px(a2)},${py(a2) + cy + h * 0.14} L0,${cy + h * 0.14} Z`} fill={tarta.cobertura} />
-      {Array.from({length: 14}).map((_, i) => (
-        <circle key={i} cx={px(a2) * (0.15 + rnd(i) * 0.8)} cy={py(a2) * (0.15 + rnd(i) * 0.8) + cy + h * (0.25 + rnd(i + 3) * 0.5)} r={3 + rnd(i + 1) * 4} fill={oscurece(tarta.relleno, 0.15)} opacity={0.5} />
-      ))}
-      {/* tapa con la cuña quitada */}
-      <path d={`M0,${cy} L${px(a2)},${py(a2) + cy} A${rx},${ry} 0 1 1 ${px(a1)},${py(a1) + cy} Z`} fill={tarta.cobertura} />
-      <ellipse cx={-120} cy={cy - 50} rx={150} ry={34} fill="#fff" opacity={0.25} />
-      {/* rosetones alrededor */}
-      {Array.from({length: 13}).map((_, i) => {
-        const a = (i / 13) * Math.PI * 2 + 0.2;
-        if (a > a1 - 0.15 && a < a2 + 0.15) return null;
-        const x = Math.cos(a) * rx * 0.84, y = Math.sin(a) * ry * 0.84 + cy;
-        const s = 0.8 + 0.25 * (Math.sin(a) + 1) / 2;
+      {/* goteo por el lateral */}
+      <path d={goteo(0.02, a1 - 0.02, 1)} fill="url(#th-gota)" />
+      <path d={goteo(a2 + 0.02, Math.PI - 0.02, 4)} fill="url(#th-gota)" />
+      {/* tapa con la cuña quitada, brillante */}
+      <path d={`M0,0 L${px(a2)},${py(a2)} A${rx},${ry} 0 1 1 ${px(a1)},${py(a1)} Z`} fill="url(#th-top)" />
+      <path d={`M${-rx * 0.62},${-ry * 0.42} A${rx * 0.75},${ry * 0.7} 0 0 1 ${-rx * 0.05},${-ry * 0.78}`} stroke="#fff" strokeWidth={14} fill="none" strokeLinecap="round" opacity={0.32} />
+      <path d={`M${-rx * 0.5},${-ry * 0.22} A${rx * 0.6},${ry * 0.55} 0 0 1 ${-rx * 0.18},${-ry * 0.5}`} stroke="#fff" strokeWidth={6} fill="none" strokeLinecap="round" opacity={0.25} />
+      <path d={`M${-rx},0 A${rx},${ry} 0 0 0 ${px(a2)},${py(a2)}`} stroke={aclara(tarta.cobertura, 0.35)} strokeWidth={4} fill="none" opacity={0.6} />
+      {/* rosetones alrededor (de atrás hacia delante) y galleta en el centro */}
+      {rosetones.map((a, i) => {
+        const x = Math.cos(a) * rx * 0.83, y = Math.sin(a) * ry * 0.83;
+        const s = 0.95 + 0.25 * ((Math.sin(a) + 1) / 2);
         return (
-          <g key={i} transform={`translate(${x} ${y - 20 * s}) scale(${s})`}>
-            <path d="M-26,20 C-30,0 -16,-24 0,-34 C16,-24 30,0 26,20 Z" fill={tarta.decor} />
-            <path d="M-14,12 C-14,-4 -6,-16 0,-22 M14,12 C14,-4 6,-16 0,-22" stroke={oscurece(tarta.decor, 0.2)} strokeWidth={4} fill="none" />
-            <ellipse cx={-6} cy={-12} rx={5} ry={9} fill="#fff" opacity={0.35} />
+          <g key={i} transform={`translate(${x} ${y})`}>
+            <Roseton c={tarta.decor} s={s} giro={i * 0.7} />
           </g>
         );
       })}
       {tarta.galleta && (
-        <g transform={`translate(0 ${cy - 34}) rotate(-6) scale(1 0.55)`}>
-          <rect x={-90} y={-58} width={180} height={116} rx={20} fill="#b8692f" stroke="#8a4a1e" strokeWidth={5} />
-          <text x={0} y={16} textAnchor="middle" fontFamily="Playfair Display" fontStyle="italic" fontWeight={700} fontSize={46} fill="#8a4a1e">
-            Lotus
-          </text>
+        <g transform="translate(-10 -40) rotate(-8) scale(1 0.62)">
+          <GalletaLotus w={190} h={124} />
         </g>
       )}
+      {tarta.galleta && <Migas n={22} w={rx * 0.9} h={ry * 0.7} c="#a0612c" semilla={3} tam={9} />}
       {/* migas sobre el plato */}
-      {Array.from({length: 18}).map((_, i) => (
-        <circle key={`m${i}`} cx={-380 + rnd(i * 2) * 760} cy={h + 30 + (rnd(i * 2 + 1) - 0.5) * 90} r={4 + rnd(i) * 7} fill={tarta.base} opacity={0.8} />
-      ))}
+      <g transform={`translate(0 ${h + 40})`}>
+        <Migas n={26} w={rx * 2.3} h={ry * 0.9} c={tarta.base} semilla={9} tam={11} />
+      </g>
     </g>
   );
 };
@@ -485,57 +507,77 @@ export const TartaHero: React.FC<{tarta: Tarta; frame: number; aparece: number}>
 /** Porción vista de lado: el corte con todas las capas */
 export const Porcion: React.FC<{tarta: Tarta; frame: number; aparece: number}> = ({tarta, frame, aparece}) => {
   const e = io(aparece);
-  const capas = [
-    {c: tarta.cobertura, h: 52},
-    {c: tarta.relleno, h: 250},
-    {c: tarta.base, h: 80},
-  ];
-  let y = -190;
+  const X0 = -320, X1 = 320, Y0 = -170;
+  const hCob = 46, hRel = 260, hBase = 86;
+  const yRel = Y0 + hCob, yBase = yRel + hRel, yFin = yBase + hBase;
+  // punta de la porción hacia el fondo (perspectiva): la cara de arriba es un triángulo
+  const fondo = {x: 170, y: Y0 - 80};
+  const goteos = Array.from({length: 9}).map((_, i) => {
+    const x = X0 + 30 + i * 72 + rnd(i) * 20;
+    return {x, l: 14 + rnd(i + 2) * 46, w: 14 + rnd(i + 4) * 12};
+  });
   return (
     <g transform={`translate(${lerp(120, 0, e)} 0) rotate(${lerp(6, 0, e)})`} opacity={clamp(aparece * 2)}>
-      <ellipse cx={30} cy={230} rx={470} ry={70} fill="url(#c-sombra)" />
-      <ellipse cx={0} cy={210} rx={440} ry={70} fill="url(#c-ceramica)" />
-      {/* parte de arriba de la porción (triángulo en perspectiva) */}
-      <path d={`M-330,-190 L330,-190 L180,-260 Z`} fill={aclara(tarta.cobertura, 0.08)} />
-      {capas.map((cp, i) => {
-        const y0 = y;
-        y += cp.h;
-        return (
-          <g key={i}>
-            <path d={`M-330,${y0} L330,${y0} L330,${y} L-330,${y} Z`} fill={cp.c} />
-            {i === 1 &&
-              Array.from({length: 40}).map((_, j) => (
-                <ellipse key={j} cx={-310 + rnd(j * 2) * 620} cy={y0 + 15 + rnd(j * 2 + 1) * (cp.h - 30)} rx={3 + rnd(j) * 7} ry={2 + rnd(j + 2) * 4} fill={oscurece(cp.c, 0.1)} opacity={0.6} />
-              ))}
-            {i === 2 &&
-              Array.from({length: 50}).map((_, j) => (
-                <circle key={j} cx={-320 + rnd(j * 5) * 640} cy={y0 + 6 + rnd(j * 5 + 1) * (cp.h - 12)} r={3 + rnd(j) * 6} fill={j % 2 ? oscurece(cp.c, 0.2) : aclara(cp.c, 0.15)} />
-              ))}
-          </g>
-        );
-      })}
-      <path d={`M-330,-190 L330,-190 L180,-260 Z`} fill="none" stroke={oscurece(tarta.cobertura, 0.2)} strokeWidth={4} />
-      <rect x={-330} y={-190} width={660} height={8} fill="#fff" opacity={0.3} />
+      <DefsRealismo />
+      <defs>
+        <linearGradient id="po-luz" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stopColor="#fff" stopOpacity={0.14} />
+          <stop offset="0.5" stopColor="#fff" stopOpacity={0} />
+          <stop offset="1" stopColor="#000" stopOpacity={0.16} />
+        </linearGradient>
+        <linearGradient id="po-top" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor={aclara(tarta.cobertura, 0.3)} />
+          <stop offset="1" stopColor={oscurece(tarta.cobertura, 0.12)} />
+        </linearGradient>
+      </defs>
+      {/* plato */}
+      <ellipse cx={30} cy={yFin + 40} rx={500} ry={86} fill="url(#r-contacto)" opacity={0.8} />
+      <ellipse cx={0} cy={yFin + 26} rx={470} ry={82} fill="#cbbfae" />
+      <ellipse cx={0} cy={yFin + 18} rx={470} ry={80} fill="url(#r-plato)" />
+      <ellipse cx={0} cy={yFin + 18} rx={400} ry={60} fill="none" stroke="#e7ddcf" strokeWidth={6} />
+      <ellipse cx={0} cy={yFin + 6} rx={360} ry={30} fill="url(#r-contacto)" />
+      {/* cara de arriba (triángulo en perspectiva) */}
+      <path d={`M${X0},${Y0} L${X1},${Y0} L${fondo.x},${fondo.y} Z`} fill="url(#po-top)" />
+      <path d={`M${X0 + 60},${Y0 - 10} L${fondo.x - 40},${fondo.y + 18}`} stroke="#fff" strokeWidth={10} strokeLinecap="round" opacity={0.3} />
+      {/* frente: capas con textura */}
+      <rect x={X0} y={yRel} width={X1 - X0} height={hRel} fill={tarta.relleno} filter="url(#r-cremoso)" />
+      {Array.from({length: 46}).map((_, j) => (
+        <ellipse key={j} cx={X0 + 14 + rnd(j * 2) * 612} cy={yRel + 18 + rnd(j * 2 + 1) * (hRel - 36)} rx={2.5 + rnd(j) * 5} ry={1.5 + rnd(j + 2) * 3} fill={oscurece(tarta.relleno, 0.16)} opacity={0.55} />
+      ))}
+      <rect x={X0} y={yBase} width={X1 - X0} height={hBase} fill={tarta.base} filter="url(#r-miga)" />
+      <rect x={X0} y={yBase - 4} width={X1 - X0} height={8} fill={oscurece(tarta.base, 0.1)} opacity={0.6} />
+      <rect x={X0} y={Y0} width={X1 - X0} height={hCob} fill={tarta.cobertura} />
+      <rect x={X0} y={Y0} width={X1 - X0} height={10} fill="#fff" opacity={0.22} />
+      {goteos.map((g, i) => (
+        <path key={i} d={`M${g.x - g.w / 2},${yRel - 2} L${g.x - g.w / 2},${yRel + g.l - g.w / 2} A${g.w / 2},${g.w / 2} 0 0 0 ${g.x + g.w / 2},${yRel + g.l - g.w / 2} L${g.x + g.w / 2},${yRel - 2} Z`} fill={tarta.cobertura} />
+      ))}
+      <rect x={X0} y={Y0} width={X1 - X0} height={yFin - Y0} fill="url(#po-luz)" />
       {/* rosetón y galleta encima */}
-      <g transform="translate(120 -232)">
-        <path d="M-36,20 C-40,-6 -22,-38 0,-50 C22,-38 40,-6 36,20 Z" fill={tarta.decor} />
-        <path d="M-18,12 C-18,-6 -8,-22 0,-30 M18,12 C18,-6 8,-22 0,-30" stroke={oscurece(tarta.decor, 0.2)} strokeWidth={5} fill="none" />
+      <g transform={`translate(${fondo.x - 70} ${Y0 - 28})`}>
+        <Roseton c={tarta.decor} s={1.35} giro={0.6} />
       </g>
       {tarta.galleta && (
-        <g transform="translate(-120 -236) rotate(-10)">
-          <rect x={-70} y={-46} width={140} height={92} rx={16} fill="#b8692f" stroke="#8a4a1e" strokeWidth={4} />
-          <text x={0} y={12} textAnchor="middle" fontFamily="Playfair Display" fontStyle="italic" fontWeight={700} fontSize={34} fill="#8a4a1e">
-            Lotus
-          </text>
+        <g transform={`translate(-150 ${Y0 - 30}) rotate(-12) scale(0.82 0.6)`}>
+          <GalletaLotus w={190} h={124} />
         </g>
       )}
+      {tarta.galleta && (
+        <g transform={`translate(-30 ${Y0 - 34})`}>
+          <Migas n={14} w={260} h={50} c="#a0612c" semilla={5} tam={8} />
+        </g>
+      )}
+      <g transform={`translate(-60 ${yFin + 30})`}>
+        <Migas n={12} w={600} h={60} c={tarta.base} semilla={2} tam={10} />
+      </g>
       {/* tenedor */}
-      <g transform={`translate(380 120) rotate(${-30 + Math.sin(frame * 0.05) * 2})`}>
+      <g transform={`translate(400 ${yFin - 40}) rotate(${-30 + Math.sin(frame * 0.05) * 2})`}>
+        <rect x={-10} y={-10} width={36} height={300} rx={16} fill="url(#r-contacto)" opacity={0.6} />
         <rect x={-14} y={-20} width={28} height={300} rx={14} fill="url(#c-acero)" />
         {[-24, -8, 8, 24].map((x) => (
           <rect key={x} x={x - 4} y={-140} width={8} height={130} rx={4} fill="url(#c-acero)" />
         ))}
         <rect x={-30} y={-30} width={60} height={30} rx={10} fill="url(#c-acero)" />
+        <rect x={-10} y={0} width={6} height={260} rx={3} fill="#fff" opacity={0.6} />
       </g>
     </g>
   );
