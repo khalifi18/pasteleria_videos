@@ -13,6 +13,8 @@ if [ -z "$REMOTION_BROWSER" ]; then
   CH=$(node -e "try{console.log(require('playwright').chromium.executablePath())}catch(e){}" 2>/dev/null || true)
   [ -n "$CH" ] && echo "export REMOTION_BROWSER=$CH" > .entorno
 fi
+# fetch de Node por el proxy de la nube (si lo hay)
+[ -n "$HTTPS_PROXY" ] && { grep -q NODE_USE_ENV_PROXY .entorno 2>/dev/null || echo "export NODE_USE_ENV_PROXY=1" >> .entorno; }
 grep -q REMOTION_GL .entorno 2>/dev/null || echo "export REMOTION_GL=swangle" >> .entorno
 if [ -z "$ELEVENLABS_API_KEY" ] && [ ! -f .env ]; then
   echo "AVISO · falta ELEVENLABS_API_KEY (variable del entorno en la nube): sin ella no hay voz"
