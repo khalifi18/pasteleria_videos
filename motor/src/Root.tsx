@@ -10,7 +10,7 @@ import type {DatosFicha} from './ficha/datos';
 const ejemplo: VideoProps = {
   audio: null,
   modo: 'leccion',
-  firma: '@tu_cuenta',
+  firma: '@iman_idrissi',
   cierre: 'Guárdala para hacerla este finde',
   finVoz: 5,
   duracion: 8,

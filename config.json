@@ -1,6 +1,6 @@
 {
   "_nota": "firma = nombre de la cuenta que sale en el vídeo. receta_en = dónde está la receta completa: descripcion o comentario (sale en pantalla en todos los vídeos). voice_id = su voz de ElevenLabs (ahora Eva, castellano peninsular; la de Ghalia es árabe y cecea en español). La clave de ElevenLabs va en la variable de entorno ELEVENLABS_API_KEY, nunca aquí.",
-  "firma": "@tu_cuenta",
+  "firma": "@iman_idrissi",
   "cierre": "Guárdala para hacerla este finde",
   "receta_en": "descripcion",
   "voz": {
