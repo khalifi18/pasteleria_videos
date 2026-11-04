@@ -109,6 +109,74 @@ const texturaMadera = () => {
   return t;
 };
 
+
+/** Ruido suave determinista (para bordes irregulares) */
+const ondula = (a: number, y: number, sem: number) =>
+  Math.sin(a * 7 + sem) * 0.45 + Math.sin(a * 13 + sem * 2.3 + y * 9) * 0.3 + Math.sin(a * 29 + sem * 0.7 + y * 23) * 0.25;
+
+/** Capa de bizcocho: cilindro con el lateral irregular (como uno de verdad) */
+const geoBizcocho = (R: number, h: number, inicio: number, largo: number, sem: number) => {
+  const g = new THREE.CylinderGeometry(R, R, h, 160, 10, false, inicio, largo);
+  const p = g.attributes.position;
+  for (let i = 0; i < p.count; i++) {
+    const x = p.getX(i), y = p.getY(i), z = p.getZ(i);
+    const r = Math.hypot(x, z);
+    if (r < R * 0.985) continue; // solo el lateral
+    const a = Math.atan2(x, z);
+    const borde = 1 - Math.pow(Math.abs(y) / (h / 2), 6) * 0.35; // los cantos un poco más hacia dentro
+    const k = (1 + 0.011 * ondula(a, y, sem)) * (0.992 + 0.008 * borde);
+    p.setX(i, x * k);
+    p.setZ(i, z * k);
+  }
+  g.computeVertexNormals();
+  return g;
+};
+
+/** Frosting entre capas: sale un poco por fuera, abombado */
+const geoFrosting = (R: number, h: number, inicio: number, largo: number) => {
+  const pts: THREE.Vector2[] = [];
+  for (let k = 0; k <= 12; k++) {
+    const u = k / 12;
+    pts.push(new THREE.Vector2(R - 0.012 + 0.034 * Math.sin(Math.PI * u), -h / 2 + h * u));
+  }
+  return new THREE.LatheGeometry(pts, 160, inicio, largo);
+};
+
+/** Canto redondeado del frosting de arriba */
+const geoCanto = (R: number, r: number, inicio: number, largo: number) => {
+  const pts: THREE.Vector2[] = [];
+  for (let k = 0; k <= 16; k++) {
+    const a = -Math.PI / 2 + (Math.PI * k) / 16;
+    pts.push(new THREE.Vector2(R - r + Math.cos(a) * r * 1.05, Math.sin(a) * r));
+  }
+  return new THREE.LatheGeometry(pts, 160, inicio, largo);
+};
+
+/** Frosting de arriba: marcas circulares de espátula */
+const texturaCremaArriba = (color: string) => {
+  const c = document.createElement('canvas');
+  c.width = c.height = 1024;
+  const g = c.getContext('2d')!;
+  g.fillStyle = color;
+  g.fillRect(0, 0, 1024, 1024);
+  const r = azar(21);
+  const base = new THREE.Color(color);
+  for (let i = 0; i < 46; i++) {
+    const rad = 40 + r() * 470, a0 = r() * Math.PI * 2, largo = 0.6 + r() * 2.2;
+    g.strokeStyle = `#${base.clone().multiplyScalar(r() < 0.5 ? 0.93 : 1.0).getHexString()}`;
+    g.globalAlpha = 0.35 + r() * 0.3;
+    g.lineWidth = 6 + r() * 22;
+    g.lineCap = 'round';
+    g.beginPath();
+    g.arc(512, 512, rad, a0, a0 + largo);
+    g.stroke();
+  }
+  g.globalAlpha = 1;
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+};
+
 /** Cara de corte (rectángulo vertical) de una capa, del centro al borde */
 const Corte: React.FC<{ang: number; y0: number; y1: number; r: number; mat: THREE.Material}> = ({ang, y0, y1, r, mat}) => {
   const h = y1 - y0;
@@ -146,6 +214,7 @@ const Escena: React.FC<{tarta: Tarta; t: number}> = ({tarta, t}) => {
     return {
       bizLado: new THREE.MeshStandardMaterial({map: lateral, bumpMap: bumpLat, bumpScale: 0.05, roughness: 0.95}),
       bizCorte: new THREE.MeshStandardMaterial({map: corte, bumpMap: bumpCorte, bumpScale: 0.06, roughness: 0.97, side: THREE.DoubleSide}),
+      cremaArriba: new THREE.MeshPhysicalMaterial({map: texturaCremaArriba(tarta.relleno), color: '#ffffff', roughness: 0.4, sheen: 0.6, sheenRoughness: 0.5, sheenColor: new THREE.Color('#fffaf0'), emissive: new THREE.Color('#fbf3e6'), emissiveIntensity: 0.12}),
       crema: new THREE.MeshPhysicalMaterial({map: crema, color: '#ffffff', roughness: 0.42, sheen: 0.6, sheenRoughness: 0.5, sheenColor: new THREE.Color('#fffaf0'), emissive: new THREE.Color('#fbf3e6'), emissiveIntensity: 0.12, side: THREE.DoubleSide}),
       plato: new THREE.MeshPhysicalMaterial({color: '#f6f3ee', roughness: 0.18, clearcoat: 0.8, clearcoatRoughness: 0.12}),
       miga: new THREE.MeshStandardMaterial({map: miga, bumpMap: bump, bumpScale: 0.02, roughness: 0.95}),
@@ -180,7 +249,7 @@ const Escena: React.FC<{tarta: Tarta; t: number}> = ({tarta, t}) => {
     const o = new THREE.Object3D();
     const base = new THREE.Color(tarta.decor);
     let n = 0;
-    for (let i = 0; i < N * 3 && n < N; i++) {
+    for (let i = 0; i < N * 3 && n < N - 300; i++) {
       const a = r() * Math.PI * 2;
       const rel = (((inicio - a) % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2); // 0..hueco = dentro del hueco
       if (rel < hueco + 0.03) continue;
@@ -188,6 +257,22 @@ const Escena: React.FC<{tarta: Tarta; t: number}> = ({tarta, t}) => {
       const grande = r() < 0.12;
       const sz = grande ? 0.022 + r() * 0.02 : 0.006 + r() * 0.012;
       o.position.set(Math.sin(a) * d, H + sz * 0.5 + r() * 0.01, Math.cos(a) * d);
+      o.rotation.set(r() * 6, r() * 6, r() * 6);
+      o.scale.setScalar(sz);
+      o.updateMatrix();
+      im.setMatrixAt(n, o.matrix);
+      im.setColorAt(n, new THREE.Color(1, 1, 1).multiplyScalar(0.62 + r() * 0.38));
+      n++;
+    }
+    // migas caídas en el plato, sobre todo delante y en el hueco de la porción
+    for (let i = 0; i < 260 && n < N; i++) {
+      const a = (r() - 0.5) * 2.2;
+      const d = R * (0.35 + r() * 0.95);
+      const sz = 0.008 + Math.pow(r(), 2) * 0.03;
+      const x = Math.sin(a) * d, z = Math.cos(a) * d;
+      const dentro = Math.hypot(x, z) < R && ((((inicio - Math.atan2(x, z)) % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2)) > hueco;
+      if (dentro || Math.hypot(x, z) > 1.38) continue;
+      o.position.set(x, 0.004 + sz * 0.4, z);
       o.rotation.set(r() * 6, r() * 6, r() * 6);
       o.scale.setScalar(sz);
       o.updateMatrix();
@@ -220,15 +305,31 @@ const Escena: React.FC<{tarta: Tarta; t: number}> = ({tarta, t}) => {
           <torusGeometry args={[1.42, 0.035, 16, 120]} />
         </mesh>
         {/* capas con la porción quitada */}
-        {capasY.map((c, i) => (
-          <group key={i}>
-            <mesh position={[0, (c.y0 + c.y1) / 2, 0]} material={c.tipo === 'biz' ? m.bizLado : m.crema} castShadow receiveShadow>
-              <cylinderGeometry args={[c.tipo === 'crema' && i === capasY.length - 1 ? R + 0.01 : R, c.tipo === 'crema' && i === capasY.length - 1 ? R + 0.01 : R, c.y1 - c.y0, 128, 1, false, inicio, Math.PI * 2 - hueco]} />
-            </mesh>
-            <Corte ang={inicio} y0={c.y0} y1={c.y1} r={R} mat={c.tipo === 'biz' ? m.bizCorte : m.crema} />
-            <Corte ang={inicio + Math.PI * 2 - hueco} y0={c.y0} y1={c.y1} r={R} mat={c.tipo === 'biz' ? m.bizCorte : m.crema} />
-          </group>
-        ))}
+        {capasY.map((c, i) => {
+          const h = c.y1 - c.y0, yc = (c.y0 + c.y1) / 2, largo = Math.PI * 2 - hueco;
+          const arriba = i === capasY.length - 1;
+          return (
+            <group key={i}>
+              {c.tipo === 'biz' ? (
+                <mesh position={[0, yc, 0]} geometry={geoBizcocho(R, h, inicio, largo, i * 3.7)} material={m.bizLado} castShadow receiveShadow />
+              ) : arriba ? (
+                <>
+                  <mesh position={[0, yc, 0]} material={m.crema} castShadow receiveShadow>
+                    <cylinderGeometry args={[R + 0.008, R + 0.008, h, 160, 1, true, inicio, largo]} />
+                  </mesh>
+                  <mesh position={[0, c.y1, 0]} rotation={[-Math.PI / 2, 0, 0]} material={m.cremaArriba} receiveShadow>
+                    <circleGeometry args={[R - 0.03, 160, inicio - Math.PI / 2, largo]} />
+                  </mesh>
+                  <mesh position={[0, c.y1 - 0.012, 0]} geometry={geoCanto(R + 0.01, 0.028, inicio, largo)} material={m.crema} castShadow receiveShadow />
+                </>
+              ) : (
+                <mesh position={[0, yc, 0]} geometry={geoFrosting(R, h, inicio, largo)} material={m.crema} castShadow receiveShadow />
+              )}
+              <Corte ang={inicio} y0={c.y0} y1={c.y1} r={R} mat={c.tipo === 'biz' ? m.bizCorte : m.crema} />
+              <Corte ang={inicio + largo} y0={c.y0} y1={c.y1} r={R} mat={c.tipo === 'biz' ? m.bizCorte : m.crema} />
+            </group>
+          );
+        })}
         {/* migas encima */}
         <primitive object={migas} />
       </group>
