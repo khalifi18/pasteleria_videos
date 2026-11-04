@@ -12,7 +12,7 @@ import {MUNDOS} from './mundos';
 import {MundoCocina} from './cocina/Mundo';
 import type {DatosCocina} from './cocina/estado';
 import {ViajeInfografia, DatosInfografia} from './infografia/Viaje';
-import {FichaViaje} from './ficha/Ficha';
+import {FichaViaje, PortadaFicha} from './ficha/Ficha';
 import type {DatosFicha} from './ficha/datos';
 import type {Tramo} from './mundos/camara';
 
@@ -211,6 +211,7 @@ export const Video: React.FC<VideoProps> = (p) => {
   const plAhora = modo === 'leccion' || modo === 'cocina' || modo === 'infografia' || modo === 'ficha' ? p.planos.find((pl, i) => frame >= pl.a && (modo !== 'leccion' ? frame < pl.b : i === p.planos.length - 1 || frame < p.planos[i + 1].a)) : undefined;
   const enTarjeta = !!plAhora && !plAhora.clip && !plAhora.escena && (plAhora.li === undefined || plAhora.li === actual);
 
+  if (p.portada && modo === 'ficha' && p.ficha) return <PortadaFicha d={p.ficha} gancho={l0.es} />;
   return (
     <AbsoluteFill style={{backgroundColor: C.noche, overflow: 'hidden'}}>
       {(modo === 'cocina' && p.cocina) || (modo === 'infografia' && p.infografia) || (modo === 'ficha' && p.ficha) ? (

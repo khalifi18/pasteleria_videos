@@ -229,3 +229,46 @@ export const FichaImagen: React.FC<{d: DatosFicha}> = ({d}) => {
     </AbsoluteFill>
   );
 };
+
+/** Portada del post (la imagen que se ve en el perfil): la tarta grande, el título y el gancho */
+export const PortadaFicha: React.FC<{d: DatosFicha; gancho: string}> = ({d, gancho}) => {
+  const tarta = tartaDe(d);
+  const img = d.t3d ? d.t3d.portadaFin : d.foto;
+  const frame = useCurrentFrame();
+  const partes = gancho.split('*');
+  const [t1, t2] = d.titulo;
+  return (
+    <AbsoluteFill style={{background: PAPEL}}>
+      <div style={{position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 900px 700px at 30% 20%, rgba(255,250,240,0.95), rgba(255,250,240,0) 70%)'}} />
+      <div style={{position: 'absolute', left: 0, right: 0, top: 170, textAlign: 'center', fontFamily: sans, fontWeight: 800, fontSize: 64, letterSpacing: 6, color: TINTA}}>{t1.toUpperCase()}</div>
+      <div style={{position: 'absolute', left: 0, right: 0, top: 220, textAlign: 'center', fontFamily: serif, fontStyle: 'italic', fontWeight: 700, fontSize: t2.length > 9 ? 190 : 230, lineHeight: 1.05, color: '#b0602a', textShadow: '0 8px 0 rgba(58,36,20,0.12)', whiteSpace: 'nowrap'}}>{t2}</div>
+      <div style={{position: 'absolute', left: 50, right: 50, top: 520, height: 820, borderRadius: 44, overflow: 'hidden', boxShadow: '0 34px 70px rgba(58,36,20,0.38)', background: '#e9dccb'}}>
+        {img ? (
+          <Img src={staticFile(img)} style={{width: '100%', height: '100%', objectFit: 'cover'}} />
+        ) : (
+          <svg width={980} height={820} viewBox="-490 -380 980 820" style={{overflow: 'visible'}}>
+            <TartaHero tarta={tarta} frame={frame} aparece={1} />
+          </svg>
+        )}
+      </div>
+      <div style={{position: 'absolute', left: 70, right: 70, top: 1385, textAlign: 'center', fontFamily: sans, fontWeight: 800, fontSize: 60, lineHeight: 1.18, color: TINTA}}>
+        {partes.map((p, i) => (
+          <span key={i} style={{color: i % 2 ? '#b0602a' : TINTA}}>
+            {p}
+          </span>
+        ))}
+      </div>
+      {d.aviso && (
+        <div style={{position: 'absolute', left: 0, right: 0, top: 1665, display: 'flex', justifyContent: 'center'}}>
+          <div style={{display: 'flex', alignItems: 'center', gap: 18, background: '#f2c165', color: TINTA, fontFamily: sans, fontWeight: 800, fontSize: 42, padding: '20px 40px', borderRadius: 999, boxShadow: '0 14px 30px rgba(58,36,20,0.25)'}}>
+            {d.aviso}
+            <svg width={38} height={38} viewBox="0 0 34 34">
+              <circle cx={17} cy={17} r={16} fill={TINTA} />
+              <path d="M17 9 L17 24 M10 18 L17 25 L24 18" stroke="#f2c165" strokeWidth={3.6} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+        </div>
+      )}
+    </AbsoluteFill>
+  );
+};

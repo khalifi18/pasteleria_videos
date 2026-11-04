@@ -6,18 +6,18 @@
 # titulo: Tarta | Red velvet
 # lema: Suave, esponjosa e irresistible
 # datos: 8–10 raciones; 1 h 20 min; Dificultad media
-# ingredientes bizcocho: 250 g de harina de trigo; 200 g de azúcar; 20 g de cacao en polvo; 1 cdta de bicarbonato; 1 cdta de vinagre blanco; ½ cdta de sal; 2 huevos; 240 ml de aceite de girasol; 240 ml de buttermilk (o leche con 1 cdta de limón); 1 cdta de extracto de vainilla; 1 cdta de colorante rojo en gel
+# ingredientes bizcocho: 250 g de harina de trigo; 200 g de azúcar; 20 g de cacao en polvo; 1 cdta de bicarbonato; 1 cdta de vinagre blanco; ½ cdta de sal; 2 huevos; 240 ml de aceite de girasol; 240 ml de suero de leche (o leche con 1 cdta de limón); 1 cdta de extracto de vainilla; 1 cdta de colorante rojo en gel
 # ingredientes frosting: 300 g de queso crema; 100 g de mantequilla fría; 120 g de azúcar glas; 1 cdta de extracto de vainilla
 # paso 1: Los secos | Precalienta el horno a 175 °C. Mezcla la harina, el azúcar, el cacao, el bicarbonato y la sal. | mezclar cacao
-# paso 2: Los líquidos | Bate los huevos con el aceite, el buttermilk, la vainilla y el colorante. | batir rojo
+# paso 2: Los líquidos | Bate los huevos con el aceite, el suero de leche, la vainilla y el colorante. | batir rojo
 # paso 3: Une la masa | Añade los líquidos a los secos, mezcla hasta integrar y agrega el vinagre suavemente. | mezclar rojo
 # paso 4: Al horno | Molde de 20 cm engrasado. 30–35 min, hasta que al pinchar salga limpio. Deja enfriar por completo. | hornear 175 rojo
 # paso 5: El frosting | Bate la mantequilla hasta que esté cremosa, añade el queso crema, el azúcar glas y la vainilla. | batir queso
 # paso 6: Cubre y decora | Cubre la tarta con el frosting y decora con migas del bizcocho. | decorar
 [portada] La red velvet más *esponjosa*, con su frosting de queso.
-[ingredientes bizcocho] Para el bizcocho: harina, cacao, buttermilk… y *colorante rojo*.
+[ingredientes bizcocho] Para el bizcocho: harina, cacao, suero de leche… y *colorante rojo*.
 [paso 1] Mezcla los secos…
-[paso 2] y bate aparte los huevos con el aceite, el buttermilk y el colorante.
+[paso 2] y bate aparte los huevos con el aceite, el suero de leche y el colorante.
 [paso 3] Únelo todo y, al final, *el vinagre*, sin batir de más.
 [paso 4] Horno a ciento setenta y cinco grados, treinta y cinco minutos.
 [ingredientes frosting] Para el frosting: queso crema, mantequilla y azúcar glas.
