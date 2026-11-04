@@ -68,6 +68,20 @@ const Tarro: React.FC<{relleno: string; texto?: string}> = ({relleno, texto}) =>
   </g>
 );
 
+const Botellita: React.FC<{liquido: string; etiqueta: string; tapon?: string}> = ({liquido, etiqueta, tapon = '#2a2a2a'}) => (
+  <g transform="rotate(-14)">
+    <rect x={-52} y={-90} width={114} height={230} rx={22} fill="#2a1408" opacity={0.15} transform="translate(10 14)" />
+    <rect x={-52} y={-70} width={104} height={196} rx={24} fill="#eef3f4" opacity={0.85} />
+    <rect x={-46} y={-30} width={92} height={150} rx={20} fill={liquido} opacity={0.85} />
+    <rect x={-20} y={-122} width={40} height={58} rx={8} fill={tapon} />
+    <rect x={-52} y={0} width={104} height={64} fill="#f4ecdb" />
+    <text x={0} y={42} textAnchor="middle" fontFamily="Playfair Display" fontStyle="italic" fontWeight={700} fontSize={26} fill="#3a2414">
+      {etiqueta}
+    </text>
+    <rect x={-42} y={-60} width={14} height={170} rx={7} fill="#fff" opacity={0.35} />
+  </g>
+);
+
 const Esencia: React.FC = () => (
   <g transform="rotate(-18)">
     <rect x={-50} y={-90} width={110} height={220} rx={20} fill="#2a1408" opacity={0.15} transform="translate(10 14)" />
@@ -93,6 +107,11 @@ export const Icono: React.FC<{texto: string; tam?: number}> = ({texto, tam = 92}
   else if (/dulce de leche|caramelo/.test(s)) el = <Tarro relleno="#c08040" />;
   else if (/leche condensada/.test(s)) el = <Tarro relleno="#f6ecd2" texto="CONDENSADA" />;
   else if (/vainilla|esencia|extracto/.test(s)) el = <Esencia />;
+  else if (/vinagre/.test(s)) el = <Botellita liquido="#f4f1e6" etiqueta="vinagre" tapon="#c8473c" />;
+  else if (/colorante/.test(s)) el = <Botellita liquido="#c8102e" etiqueta="colorante" tapon="#c8102e" />;
+  else if (/bicarbonato/.test(s)) el = <Ingrediente k="levadura" />;
+  else if (/buttermilk|suero de leche/.test(s)) el = <Ingrediente k="leche" />;
+  else if (/\bsal\b/.test(s)) el = <Ingrediente k="azucar" />;
   else if (/maicena/.test(s)) el = <Ingrediente k="harina" />;
   else {
     const k = piezaDe(texto);
@@ -244,7 +263,12 @@ export const TartaArriba: React.FC<{tarta: Tarta; decor: number; frame: number; 
     <circle r={r} fill={tarta.cobertura} />
     <circle r={r} fill="none" stroke={oscurece(tarta.cobertura, 0.15)} strokeWidth={6} />
     <ellipse cx={-r * 0.35} cy={-r * 0.4} rx={r * 0.38} ry={r * 0.12} fill="#fff" opacity={0.28} transform={`rotate(-30 ${-r * 0.35} ${-r * 0.4})`} />
-    {Array.from({length: 12}).map((_, i) => {
+    {tarta.encima === 'migas' && (
+      <g opacity={io(decor)}>
+        <Migas n={Math.round(110 * decor)} w={r * 1.5} h={r * 1.8} c={tarta.decor} semilla={4} tam={11} />
+      </g>
+    )}
+    {tarta.encima !== 'migas' && Array.from({length: 12}).map((_, i) => {
       const ap = clamp(decor * 12 - i);
       if (ap <= 0) return null;
       const a = (i / 12) * Math.PI * 2;
@@ -379,7 +403,7 @@ export const Ilustracion: React.FC<IlusProps> = ({op, a, vivo, frame, tarta}) =>
           <rect x={-180} y={-70} width={360} height={210} rx={18} fill="#16100d" />
           <rect x={-180} y={-70} width={360} height={210} rx={18} fill="url(#c-calor)" opacity={vivo ? 0.9 + 0.1 * Math.sin(frame * 0.3) : 0.6} />
           <path d={`M-150,${90} L150,${90} L140,${130} L-140,${130} Z`} fill="#7c8188" />
-          <path d={`M-146,90 C-80,${70 - 50 * anim} 80,${70 - 50 * anim} 146,90 Z`} fill={lerp(0, 1, anim) > 0.6 ? '#cf8a46' : col1} />
+          <path d={`M-146,90 C-80,${70 - 50 * anim} 80,${70 - 50 * anim} 146,90 Z`} fill={c2 ? (anim > 0.6 ? oscurece(col2, 0.12) : col2) : anim > 0.6 ? '#cf8a46' : col1} />
         </g>
       );
       break;
@@ -405,6 +429,29 @@ export const Ilustracion: React.FC<IlusProps> = ({op, a, vivo, frame, tarta}) =>
 };
 
 // ---------------- Tarta de portada en 3/4 (capas, porción quitada, cobertura que gotea) ----------------
+type Banda = {y0: number; y1: number; c: string; f: string};
+/** Capas de la tarta de arriba (y=0) abajo (y=h): tarta de bizcochos (capas) o base + relleno */
+const bandas = (t: Tarta, h: number, hCob: number, hBase: number): Banda[] => {
+  if (t.capas) {
+    const out: Banda[] = [{y0: 0, y1: hCob, c: t.cobertura, f: 'url(#r-cremoso)'}];
+    const fr = 16, n = t.capas, alto = (h - hCob - fr * (n - 1)) / n;
+    let y = hCob;
+    for (let i = 0; i < n; i++) {
+      out.push({y0: y, y1: y + alto, c: t.base, f: 'url(#r-miga)'});
+      y += alto;
+      if (i < n - 1) {
+        out.push({y0: y, y1: y + fr, c: t.relleno, f: 'url(#r-cremoso)'});
+        y += fr;
+      }
+    }
+    return out;
+  }
+  return [
+    {y0: 0, y1: hCob, c: t.cobertura, f: ''},
+    {y0: hCob, y1: h - hBase, c: t.relleno, f: 'url(#r-cremoso)'},
+    {y0: h - hBase, y1: h, c: t.base, f: 'url(#r-miga)'},
+  ];
+};
 const lado = (rx: number, ry: number, y0: number, y1: number) => `M${-rx},${y0} A${rx},${ry} 0 0 0 ${rx},${y0} L${rx},${y1} A${rx},${ry} 0 0 1 ${-rx},${y1} Z`;
 
 export const TartaHero: React.FC<{tarta: Tarta; frame: number; aparece: number}> = ({tarta, frame, aparece}) => {
@@ -437,6 +484,9 @@ export const TartaHero: React.FC<{tarta: Tarta; frame: number; aparece: number}>
         <clipPath id="th-lado">
           <path d={lado(rx, ry, 0, h)} />
         </clipPath>
+        <clipPath id="th-tapa">
+          <path d={`M0,0 L${px(a2)},${py(a2)} A${rx},${ry} 0 1 1 ${px(a1)},${py(a1)} Z`} transform="scale(0.97)" />
+        </clipPath>
         <radialGradient id="th-top" cx="0.36" cy="0.3" r="0.75">
           <stop offset="0" stopColor={aclara(tarta.cobertura, 0.28)} />
           <stop offset="0.55" stopColor={tarta.cobertura} />
@@ -455,33 +505,40 @@ export const TartaHero: React.FC<{tarta: Tarta; frame: number; aparece: number}>
       <ellipse cx={0} cy={h + 8} rx={rx + 20} ry={ry + 16} fill="url(#r-contacto)" />
       {/* lateral por capas, con textura y volumen */}
       <g clipPath="url(#th-lado)">
-        <rect x={-rx} y={-ry} width={rx * 2} height={h + ry * 2} fill={tarta.relleno} filter="url(#r-cremoso)" />
-        <rect x={-rx} y={yBase} width={rx * 2} height={hBase + ry} fill={tarta.base} filter="url(#r-miga)" />
-        <rect x={-rx} y={yBase - 3} width={rx * 2} height={6} fill={oscurece(tarta.relleno, 0.15)} opacity={0.5} />
+        {bandas(tarta, h, hCob, hBase).map((b, i) => (
+          <rect key={i} x={-rx} y={i === 0 ? -ry : b.y0} width={rx * 2} height={b.y1 - (i === 0 ? -ry : b.y0) + (b.y1 >= h ? ry : 0)} fill={b.c} filter={b.f || undefined} />
+        ))}
+        {!tarta.capas && <rect x={-rx} y={yBase - 3} width={rx * 2} height={6} fill={oscurece(tarta.relleno, 0.15)} opacity={0.5} />}
         <rect x={-rx} y={-ry} width={rx * 2} height={h + ry * 2} fill="url(#r-lateral)" />
       </g>
       {/* hueco de la porción: caras interiores (la derecha en sombra, la izquierda iluminada) */}
-      <path d={`M0,0 L${px(a1)},${py(a1)} L${px(a1)},${py(a1) + h} L0,${h} Z`} fill={oscurece(tarta.relleno, 0.16)} filter="url(#r-cremoso)" />
-      <path d={`M0,${yBase} L${px(a1)},${py(a1) + yBase} L${px(a1)},${py(a1) + h} L0,${h} Z`} fill={oscurece(tarta.base, 0.2)} filter="url(#r-miga)" />
-      <path d={`M0,0 L${px(a2)},${py(a2)} L${px(a2)},${py(a2) + h} L0,${h} Z`} fill={aclara(tarta.relleno, 0.06)} filter="url(#r-cremoso)" />
-      <path d={`M0,${yBase} L${px(a2)},${py(a2) + yBase} L${px(a2)},${py(a2) + h} L0,${h} Z`} fill={tarta.base} filter="url(#r-miga)" />
-      <path d={`M0,0 L${px(a2)},${py(a2)} L${px(a2)},${py(a2) + yCob} L0,${yCob} Z`} fill={tarta.cobertura} />
-      <path d={`M0,0 L${px(a1)},${py(a1)} L${px(a1)},${py(a1) + yCob} L0,${yCob} Z`} fill={oscurece(tarta.cobertura, 0.2)} />
+      {bandas(tarta, h, hCob, hBase).map((b, i) => (
+        <g key={i}>
+          <path d={`M0,${b.y0} L${px(a1)},${py(a1) + b.y0} L${px(a1)},${py(a1) + b.y1} L0,${b.y1} Z`} fill={oscurece(b.c, 0.18)} filter={b.f || undefined} />
+          <path d={`M0,${b.y0} L${px(a2)},${py(a2) + b.y0} L${px(a2)},${py(a2) + b.y1} L0,${b.y1} Z`} fill={i === 0 ? b.c : aclara(b.c, 0.05)} filter={b.f || undefined} />
+        </g>
+      ))}
       {/* burbujitas en el corte iluminado */}
-      {Array.from({length: 22}).map((_, i) => {
+      {!tarta.capas && Array.from({length: 22}).map((_, i) => {
         const u = 0.12 + rnd(i) * 0.8, v = 0.18 + rnd(i + 7) * 0.55;
         return <ellipse key={i} cx={px(a2) * u} cy={py(a2) * u + h * v} rx={2 + rnd(i + 3) * 4} ry={1.5 + rnd(i + 5) * 2.5} fill={oscurece(tarta.relleno, 0.18)} opacity={0.55} />;
       })}
       {/* goteo por el lateral */}
-      <path d={goteo(0.02, a1 - 0.02, 1)} fill="url(#th-gota)" />
-      <path d={goteo(a2 + 0.02, Math.PI - 0.02, 4)} fill="url(#th-gota)" />
+      {tarta.goteo !== false && <path d={goteo(0.02, a1 - 0.02, 1)} fill="url(#th-gota)" />}
+      {tarta.goteo !== false && <path d={goteo(a2 + 0.02, Math.PI - 0.02, 4)} fill="url(#th-gota)" />}
       {/* tapa con la cuña quitada, brillante */}
       <path d={`M0,0 L${px(a2)},${py(a2)} A${rx},${ry} 0 1 1 ${px(a1)},${py(a1)} Z`} fill="url(#th-top)" />
       <path d={`M${-rx * 0.62},${-ry * 0.42} A${rx * 0.75},${ry * 0.7} 0 0 1 ${-rx * 0.05},${-ry * 0.78}`} stroke="#fff" strokeWidth={14} fill="none" strokeLinecap="round" opacity={0.32} />
       <path d={`M${-rx * 0.5},${-ry * 0.22} A${rx * 0.6},${ry * 0.55} 0 0 1 ${-rx * 0.18},${-ry * 0.5}`} stroke="#fff" strokeWidth={6} fill="none" strokeLinecap="round" opacity={0.25} />
       <path d={`M${-rx},0 A${rx},${ry} 0 0 0 ${px(a2)},${py(a2)}`} stroke={aclara(tarta.cobertura, 0.35)} strokeWidth={4} fill="none" opacity={0.6} />
       {/* rosetones alrededor (de atrás hacia delante) y galleta en el centro */}
-      {rosetones.map((a, i) => {
+      {tarta.encima === 'migas' && (
+        <g clipPath="url(#th-tapa)">
+          <Migas n={150} w={rx * 2} h={ry * 2} c={tarta.decor} semilla={4} tam={13} />
+          <Migas n={60} w={rx * 1.2} h={ry * 1.2} c={oscurece(tarta.decor, 0.1)} semilla={8} tam={16} />
+        </g>
+      )}
+      {tarta.encima !== 'migas' && rosetones.map((a, i) => {
         const x = Math.cos(a) * rx * 0.83, y = Math.sin(a) * ry * 0.83;
         const s = 0.95 + 0.25 * ((Math.sin(a) + 1) / 2);
         return (
@@ -540,22 +597,30 @@ export const Porcion: React.FC<{tarta: Tarta; frame: number; aparece: number}> =
       <path d={`M${X0},${Y0} L${X1},${Y0} L${fondo.x},${fondo.y} Z`} fill="url(#po-top)" />
       <path d={`M${X0 + 60},${Y0 - 10} L${fondo.x - 40},${fondo.y + 18}`} stroke="#fff" strokeWidth={10} strokeLinecap="round" opacity={0.3} />
       {/* frente: capas con textura */}
-      <rect x={X0} y={yRel} width={X1 - X0} height={hRel} fill={tarta.relleno} filter="url(#r-cremoso)" />
-      {Array.from({length: 46}).map((_, j) => (
-        <ellipse key={j} cx={X0 + 14 + rnd(j * 2) * 612} cy={yRel + 18 + rnd(j * 2 + 1) * (hRel - 36)} rx={2.5 + rnd(j) * 5} ry={1.5 + rnd(j + 2) * 3} fill={oscurece(tarta.relleno, 0.16)} opacity={0.55} />
+      {bandas(tarta, yFin - Y0, hCob, hBase).map((b, i) => (
+        <rect key={i} x={X0} y={Y0 + b.y0} width={X1 - X0} height={b.y1 - b.y0} fill={b.c} filter={b.f || undefined} />
       ))}
-      <rect x={X0} y={yBase} width={X1 - X0} height={hBase} fill={tarta.base} filter="url(#r-miga)" />
-      <rect x={X0} y={yBase - 4} width={X1 - X0} height={8} fill={oscurece(tarta.base, 0.1)} opacity={0.6} />
-      <rect x={X0} y={Y0} width={X1 - X0} height={hCob} fill={tarta.cobertura} />
+      {!tarta.capas &&
+        Array.from({length: 46}).map((_, j) => (
+          <ellipse key={j} cx={X0 + 14 + rnd(j * 2) * 612} cy={yRel + 18 + rnd(j * 2 + 1) * (hRel - 36)} rx={2.5 + rnd(j) * 5} ry={1.5 + rnd(j + 2) * 3} fill={oscurece(tarta.relleno, 0.16)} opacity={0.55} />
+        ))}
+      {!tarta.capas && <rect x={X0} y={yBase - 4} width={X1 - X0} height={8} fill={oscurece(tarta.base, 0.1)} opacity={0.6} />}
       <rect x={X0} y={Y0} width={X1 - X0} height={10} fill="#fff" opacity={0.22} />
-      {goteos.map((g, i) => (
-        <path key={i} d={`M${g.x - g.w / 2},${yRel - 2} L${g.x - g.w / 2},${yRel + g.l - g.w / 2} A${g.w / 2},${g.w / 2} 0 0 0 ${g.x + g.w / 2},${yRel + g.l - g.w / 2} L${g.x + g.w / 2},${yRel - 2} Z`} fill={tarta.cobertura} />
-      ))}
+      {tarta.goteo !== false &&
+        goteos.map((g, i) => (
+          <path key={i} d={`M${g.x - g.w / 2},${yRel - 2} L${g.x - g.w / 2},${yRel + g.l - g.w / 2} A${g.w / 2},${g.w / 2} 0 0 0 ${g.x + g.w / 2},${yRel + g.l - g.w / 2} L${g.x + g.w / 2},${yRel - 2} Z`} fill={tarta.cobertura} />
+        ))}
       <rect x={X0} y={Y0} width={X1 - X0} height={yFin - Y0} fill="url(#po-luz)" />
-      {/* rosetón y galleta encima */}
-      <g transform={`translate(${fondo.x - 70} ${Y0 - 28})`}>
-        <Roseton c={tarta.decor} s={1.35} giro={0.6} />
-      </g>
+      {/* rosetón (o migas) y galleta encima */}
+      {tarta.encima === 'migas' ? (
+        <g transform={`translate(${(X0 + fondo.x) / 2 + 40} ${Y0 - 34})`}>
+          <Migas n={45} w={420} h={60} c={tarta.decor} semilla={6} tam={12} />
+        </g>
+      ) : (
+        <g transform={`translate(${fondo.x - 70} ${Y0 - 28})`}>
+          <Roseton c={tarta.decor} s={1.35} giro={0.6} />
+        </g>
+      )}
       {tarta.galleta && (
         <g transform={`translate(-150 ${Y0 - 30}) rotate(-12) scale(0.82 0.6)`}>
           <GalletaLotus w={190} h={124} />

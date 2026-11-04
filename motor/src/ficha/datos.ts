@@ -3,7 +3,8 @@
 
 export type Grupo = {nombre: string; items: string[]};
 export type Paso = {n: number; titulo: string; texto: string; escena: string[]};
-export type Tarta = {base: string; relleno: string; cobertura: string; decor: string; galleta: boolean};
+// capas: tarta de bizcochos (base = bizcocho, relleno = frosting) · encima: rosetones o migas · goteo de la cobertura
+export type Tarta = {base: string; relleno: string; cobertura: string; decor: string; galleta: boolean; capas?: number; encima?: 'rosetones' | 'migas'; goteo?: boolean};
 export type DatosFicha = {
   titulo: [string, string]; // "La tarta de" · "Lotus"
   lema: string;
@@ -24,7 +25,7 @@ export const TARTAS: Record<string, Tarta> = {
   limon: {base: '#a8723f', relleno: '#f8f0d8', cobertura: '#f4d43c', decor: '#fffaf0', galleta: false},
   chocolate: {base: '#3e2214', relleno: '#7a4a30', cobertura: '#3a1e12', decor: '#5c3320', galleta: false},
   fresa: {base: '#a8723f', relleno: '#f7d6dc', cobertura: '#d8344c', decor: '#fff6f6', galleta: false},
-  'red-velvet': {base: '#9e1b2c', relleno: '#fbf6ee', cobertura: '#fbf6ee', decor: '#b3202f', galleta: false},
+  'red-velvet': {base: '#9e1b2c', relleno: '#fbf6ee', cobertura: '#fbf6ee', decor: '#b3202f', galleta: false, capas: 3, encima: 'migas', goteo: false},
   vainilla: {base: '#d9a65e', relleno: '#fbf0d6', cobertura: '#fff8ea', decor: '#e8c47c', galleta: false},
 };
 
