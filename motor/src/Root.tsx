@@ -4,6 +4,8 @@ import {FPS, H, W} from './tema';
 import {Video, VideoProps} from './Video';
 import {ESCENAS} from './dibujos';
 import {FichaImagen} from './ficha/Ficha';
+import {Tarta3D} from './ficha/Tarta3D';
+import {TARTAS} from './ficha/datos';
 import {FW, maqueta} from './ficha/datos';
 import type {DatosFicha} from './ficha/datos';
 
@@ -48,6 +50,7 @@ export const Root: React.FC = () => (
       defaultProps={{d: {titulo: ['', ''], lema: '', datos: [], grupos: [], pasos: [], tramos: [], fin: 0} as DatosFicha}}
       calculateMetadata={({props}) => ({height: Math.ceil(maqueta(props.d).alto / 2) * 2})}
     />
+    <Composition id="Tarta3D" component={Tarta3D} width={1080} height={1080} fps={FPS} durationInFrames={150} defaultProps={{tarta: TARTAS['red-velvet']}} />
     <Composition id="Escena" component={VistaEscena} width={W} height={H} fps={FPS} durationInFrames={150} defaultProps={{escena: 'puerta', opts: [] as string[], k: 30, d: 150}} />
   </>
 );
