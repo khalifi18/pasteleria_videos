@@ -2,6 +2,7 @@
 # formato: ficha
 # idioma: es
 # tarta: red-velvet
+# tarta3d: si
 # titulo: Tarta | Red velvet
 # lema: Suave, esponjosa e irresistible
 # datos: 8–10 raciones; 1 h 20 min; Dificultad media

@@ -4,7 +4,7 @@ import React, {useMemo} from 'react';
 import {useCurrentFrame, useVideoConfig} from 'remotion';
 import {ThreeCanvas} from '@remotion/three';
 import * as THREE from 'three';
-import {Tarta} from './datos';
+import {Tarta, TARTAS} from './datos';
 
 const azar = (semilla: number) => {
   let s = semilla >>> 0;
@@ -241,7 +241,14 @@ const Escena: React.FC<{tarta: Tarta; t: number}> = ({tarta, t}) => {
 };
 
 /** La tarta en 3D a pantalla completa; la cámara gira despacio a su alrededor */
-export const Tarta3D: React.FC<{tarta: Tarta; ancho?: number; alto?: number}> = ({tarta, ancho = 1080, alto = 1080}) => {
+export type Vista3D = 'portada' | 'cerca';
+const CAMARAS: Record<Vista3D, {pos: [number, number, number]; mira: [number, number, number]; fov: number}> = {
+  portada: {pos: [0.4, 3.0, 4.6], mira: [0, 0.35, 0], fov: 28},
+  cerca: {pos: [0.9, 1.35, 3.1], mira: [0, 0.42, 0], fov: 30}, // más baja y cerca: se ven las capas del corte
+};
+export const Tarta3D: React.FC<{tarta?: Tarta; tartaNombre?: string; ancho?: number; alto?: number; vista?: Vista3D; frames?: number}> = ({tarta: t0, tartaNombre, ancho = 1080, alto = 1080, vista = 'portada'}) => {
+  const tarta = t0 ?? TARTAS[tartaNombre ?? 'red-velvet'] ?? TARTAS['red-velvet'];
+  const cam = CAMARAS[vista];
   const frame = useCurrentFrame();
   const {fps} = useVideoConfig();
   return (
@@ -250,9 +257,9 @@ export const Tarta3D: React.FC<{tarta: Tarta; ancho?: number; alto?: number}> = 
       height={alto}
       shadows
       gl={{antialias: true, preserveDrawingBuffer: true, toneMapping: THREE.ACESFilmicToneMapping}}
-      camera={{fov: 28, position: [0.4, 3.0, 4.6], near: 0.1, far: 50}}
+      camera={{fov: cam.fov, position: cam.pos, near: 0.1, far: 50}}
       onCreated={({camera, gl}) => {
-        camera.lookAt(0, 0.35, 0);
+        camera.lookAt(...cam.mira);
         gl.shadowMap.type = THREE.PCFSoftShadowMap;
       }}
     >

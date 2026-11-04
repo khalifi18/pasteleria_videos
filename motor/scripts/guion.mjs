@@ -105,6 +105,7 @@ export function leerGuion(dir) {
       pasos: pasos.sort((a, b) => a.n - b.n),
       tarta: (cab('tarta') || '').toLowerCase().trim(),
       foto: cab('foto'),
+      t3d: /^(si|sí|yes|1)/i.test(cab('tarta3d') || ''),
     };
   }
   // infografía: # imagen: archivo.jpg  y  # zona nombre: x y ancho alto (en % de la imagen)

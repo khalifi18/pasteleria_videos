@@ -50,7 +50,16 @@ export const Root: React.FC = () => (
       defaultProps={{d: {titulo: ['', ''], lema: '', datos: [], grupos: [], pasos: [], tramos: [], fin: 0} as DatosFicha}}
       calculateMetadata={({props}) => ({height: Math.ceil(maqueta(props.d).alto / 2) * 2})}
     />
-    <Composition id="Tarta3D" component={Tarta3D} width={1080} height={1080} fps={FPS} durationInFrames={150} defaultProps={{tarta: TARTAS['red-velvet']}} />
+    <Composition
+      id="Tarta3D"
+      component={Tarta3D}
+      width={1080}
+      height={1080}
+      fps={FPS}
+      durationInFrames={150}
+      defaultProps={{tarta: TARTAS['red-velvet'], ancho: 1080, alto: 1080, vista: 'portada' as const, frames: 150}}
+      calculateMetadata={({props}) => ({width: props.ancho ?? 1080, height: props.alto ?? 1080, durationInFrames: props.frames ?? 150})}
+    />
     <Composition id="Escena" component={VistaEscena} width={W} height={H} fps={FPS} durationInFrames={150} defaultProps={{escena: 'puerta', opts: [] as string[], k: 30, d: 150}} />
   </>
 );

@@ -14,6 +14,7 @@ export type DatosFicha = {
   tarta?: Tarta;
   tartaNombre?: string;
   foto?: string | null; // foto real del dulce (portada y final), si la hay
+  t3d?: {portada: string; portadaFin: string; cerca: string; cercaIni: string; cercaFin: string; frames: number} | null; // tarta 3D girando (clips y fotogramas fijos)
   aviso?: string | null;
   tramos: {zona: string; ini: number; fin: number}[]; // a qué bloque va la cámara en cada línea
   fin: number;
@@ -57,7 +58,7 @@ export const altoGrupo = (g: Grupo) => 150 + g.items.length * FILA_INGR;
 export const ALTO_PASO = 760;
 
 export const maqueta = (d: Pick<DatosFicha, 'grupos' | 'pasos'>): Maqueta => {
-  const portada = {x: 0, y: 0, w: FW, h: 1240};
+  const portada = {x: 0, y: 0, w: FW, h: 1380};
   let y = portada.h + 40;
   const cabIngr = {x: 0, y, w: FW, h: 130};
   y += cabIngr.h + 30;

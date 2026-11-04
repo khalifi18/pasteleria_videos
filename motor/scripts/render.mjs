@@ -190,6 +190,7 @@ if (modo === 'ficha') {
     return {zona: z, ini: tiempos[i].ini, fin: tiempos[i].fin};
   });
   // la tarta de la paleta (TARTAS en src/ficha/datos.ts) se resuelve en el componente
+  props.ficha_t3d = f.t3d ? tarta : null;
   props.ficha = {titulo: f.titulo, lema: f.lema, datos: f.datos, grupos: f.grupos, pasos: f.pasos, tartaNombre: tarta, foto, aviso, tramos, fin: finVoz};
 }
 if (modo === 'infografia') {
@@ -276,6 +277,33 @@ if (fs.existsSync(audio)) {
 }
 
 const serveUrl = await bundle({entryPoint: path.join(motor, 'src', 'index.ts'), publicDir: pub});
+
+// Ficha con tarta 3D: dos clips girando (portada y de cerca) + fotogramas fijos, generados una vez por receta
+if (props.ficha_t3d) {
+  const FR = 210; // 7 s
+  const d3 = path.join(pub, 'tarta3d');
+  fs.mkdirSync(d3, {recursive: true});
+  const huella = `${props.ficha_t3d}|${FR}|${fs.statSync(path.join(motor, 'src', 'ficha', 'Tarta3D.tsx')).mtimeMs}|${fs.statSync(path.join(motor, 'src', 'ficha', 'datos.ts')).mtimeMs}`;
+  const meta = path.join(d3, `${slug}.txt`);
+  const nombres = {portada: `tarta3d/${slug}-portada.mp4`, portadaFin: `tarta3d/${slug}-portada-fin.png`, cerca: `tarta3d/${slug}-cerca.mp4`, cercaIni: `tarta3d/${slug}-cerca-ini.png`, cercaFin: `tarta3d/${slug}-cerca-fin.png`, frames: FR};
+  if (!fs.existsSync(meta) || fs.readFileSync(meta, 'utf8') !== huella) {
+    for (const [vista, ancho, alto] of [['portada', 1080, 1080], ['cerca', 1500, 1020]]) {
+      const ip = {tartaNombre: props.ficha_t3d, ancho, alto, vista, frames: FR};
+      const comp = await selectComposition({serveUrl, id: 'Tarta3D', inputProps: ip, chromiumOptions, browserExecutable});
+      console.log(`Tarta 3D (${vista}): generando ${FR} fotogramas, unos minutos…`);
+      await renderMedia({chromiumOptions, browserExecutable, composition: comp, serveUrl, codec: 'h264', crf: 16, outputLocation: path.join(pub, nombres[vista]), inputProps: ip, concurrency: 2});
+      const fijo = async (frame, out) => renderStill({chromiumOptions, browserExecutable, composition: comp, serveUrl, frame, output: path.join(pub, out), inputProps: ip, imageFormat: 'png'});
+      if (vista === 'portada') await fijo(FR - 1, nombres.portadaFin);
+      else {
+        await fijo(0, nombres.cercaIni);
+        await fijo(FR - 1, nombres.cercaFin);
+      }
+    }
+    fs.writeFileSync(meta, huella);
+  }
+  props.ficha.t3d = nombres;
+}
+delete props.ficha_t3d;
 const composition = await selectComposition({serveUrl, id: 'Video', inputProps: props, chromiumOptions, browserExecutable});
 
 const still = async (frame, output, extra = {}, scale = 1) =>

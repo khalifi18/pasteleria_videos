@@ -2,7 +2,7 @@
 // Cuando la cámara llega a un bloque, ese bloque cobra vida: los ingredientes se marcan uno a uno,
 // la ilustración del paso se anima y al acabar el paso aparece un ✓ que se queda.
 import React from 'react';
-import {AbsoluteFill, Img, staticFile, useCurrentFrame, useVideoConfig} from 'remotion';
+import {AbsoluteFill, Img, OffthreadVideo, Sequence, staticFile, useCurrentFrame, useVideoConfig} from 'remotion';
 import {Defs} from '../cocina/piezas';
 import {Caja, DatosFicha, FW, FILA_INGR, camara, io, maqueta, tartaDe, visita} from './datos';
 import {Icono, Ilustracion, Porcion, TartaHero} from './dibujos';
@@ -80,7 +80,17 @@ export const FichaMundo: React.FC<{d: DatosFicha; t: number; frame: number; esta
             );
           })}
         </div>
-        {d.foto ? (
+        {d.t3d ? (
+          <div style={{position: 'absolute', left: 820, top: 600, width: 720, height: 720, borderRadius: 40, overflow: 'hidden', boxShadow: '0 30px 60px rgba(58,36,20,0.35)'}}>
+            {estatica || frame >= d.t3d.frames - 1 ? (
+              <Img src={staticFile(estatica ? d.t3d.portadaFin : d.t3d.portadaFin)} style={{width: '100%', height: '100%', objectFit: 'cover'}} />
+            ) : (
+              <Sequence from={0} durationInFrames={d.t3d.frames} layout="none">
+                <OffthreadVideo src={staticFile(d.t3d.portada)} muted style={{width: '100%', height: '100%', objectFit: 'cover'}} />
+              </Sequence>
+            )}
+          </div>
+        ) : d.foto ? (
           <div style={{position: 'absolute', left: 780, top: 90, width: 760, height: 900, borderRadius: 40, overflow: 'hidden', boxShadow: '0 30px 60px rgba(58,36,20,0.35)'}}>
             <Img src={staticFile(d.foto)} style={{width: '100%', height: '100%', objectFit: 'cover'}} />
           </div>
@@ -153,7 +163,22 @@ export const FichaMundo: React.FC<{d: DatosFicha; t: number; frame: number; esta
       {/* ---------- Porción final ---------- */}
       <div style={cajaStyle(m.porcion)}>
         <div style={{position: 'absolute', left: 0, right: 0, top: 30, textAlign: 'center', fontFamily: serif, fontStyle: 'italic', fontWeight: 700, fontSize: 120, color: '#b0602a'}}>¡A disfrutar!</div>
-        {d.foto ? (
+        {d.t3d ? (
+          <div style={{position: 'absolute', left: 150, top: 200, width: 1000, height: 680, borderRadius: 40, overflow: 'hidden', boxShadow: '0 30px 60px rgba(58,36,20,0.35)'}}>
+            {(() => {
+              const fps = 30;
+              const ini = Math.max(0, Math.round(((visita(d, 'porcion')?.ini ?? 1e6) - 0.6) * fps));
+              if (estatica) return <Img src={staticFile(d.t3d.cercaFin)} style={{width: '100%', height: '100%', objectFit: 'cover'}} />;
+              if (frame < ini) return <Img src={staticFile(d.t3d.cercaIni)} style={{width: '100%', height: '100%', objectFit: 'cover'}} />;
+              if (frame >= ini + d.t3d.frames - 1) return <Img src={staticFile(d.t3d.cercaFin)} style={{width: '100%', height: '100%', objectFit: 'cover'}} />;
+              return (
+                <Sequence from={ini} durationInFrames={d.t3d.frames} layout="none">
+                  <OffthreadVideo src={staticFile(d.t3d.cerca)} muted style={{width: '100%', height: '100%', objectFit: 'cover'}} />
+                </Sequence>
+              );
+            })()}
+          </div>
+        ) : d.foto ? (
           <div style={{position: 'absolute', left: 150, top: 220, width: 1000, height: 640, borderRadius: 40, overflow: 'hidden', boxShadow: '0 30px 60px rgba(58,36,20,0.35)'}}>
             <Img src={staticFile(d.foto)} style={{width: '100%', height: '100%', objectFit: 'cover'}} />
           </div>
