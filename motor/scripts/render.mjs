@@ -276,7 +276,7 @@ if (fs.existsSync(audio)) {
   console.log('AVISO · sin audio.mp3: vídeo mudo con tiempos estimados');
 }
 
-const serveUrl = await bundle({entryPoint: path.join(motor, 'src', 'index.ts'), publicDir: pub});
+let serveUrl = await bundle({entryPoint: path.join(motor, 'src', 'index.ts'), publicDir: pub});
 
 // Ficha con tarta 3D: dos clips girando (portada y de cerca) + fotogramas fijos, generados una vez por receta
 if (props.ficha_t3d) {
@@ -300,6 +300,8 @@ if (props.ficha_t3d) {
       }
     }
     fs.writeFileSync(meta, huella);
+    // los clips nuevos solo se sirven si se vuelve a empaquetar el proyecto
+    serveUrl = await bundle({entryPoint: path.join(motor, 'src', 'index.ts'), publicDir: pub});
   }
   props.ficha.t3d = nombres;
 }
