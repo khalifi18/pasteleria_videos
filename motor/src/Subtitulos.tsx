@@ -51,7 +51,7 @@ export const trozosEs = (es: string, maxPal = MAX_PAL, maxCar = MAX_CAR) => {
 };
 
 /** Subtítulo de una línea: los trozos se reparten a lo largo de la voz de esa línea */
-export const Subtitulo: React.FC<{es: string; ini: number; fin: number; frame: number; fps: number; centro?: boolean; arriba?: boolean}> = ({es, ini, fin, frame, fps, centro, arriba}) => {
+export const Subtitulo: React.FC<{es: string; ini: number; fin: number; frame: number; fps: number; centro?: boolean; arriba?: boolean; top?: number}> = ({es, ini, fin, frame, fps, centro, arriba, top}) => {
   // centro = formato POV: frase grande en el centro de la pantalla
   const grupos = centro ? trozosEs(es, 10, 52) : trozosEs(es);
   if (!grupos.length) return null;
@@ -71,7 +71,7 @@ export const Subtitulo: React.FC<{es: string; ini: number; fin: number; frame: n
   const g = grupos[gi];
   const pop = back(prog(frame, Math.round(inicioG * fps) - 2, 7));
   return (
-    <div style={{position: 'absolute', left: 80, right: centro || arriba ? 80 : 150, top: centro ? 760 : arriba ? 150 : SUB_Y - 120, height: centro ? 420 : 240, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+    <div style={{position: 'absolute', left: 80, right: centro || arriba ? 80 : 150, top: top ?? (centro ? 760 : arriba ? 150 : SUB_Y - 120), height: centro ? 420 : 240, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
       <div
         style={{
           fontFamily: sans,

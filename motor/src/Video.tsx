@@ -259,7 +259,7 @@ export const Video: React.FC<VideoProps> = (p) => {
         </div>
       )}
 
-      {!p.portada && frame < finVozF + 6 && !enTarjeta && <Subtitulo es={la.es} ini={la.ini} fin={la.fin} frame={frame} fps={fps} centro={centro} arriba={modo === 'cocina' || modo === 'infografia' || modo === 'ficha'} />}
+      {!p.portada && frame < finVozF + 6 && !enTarjeta && <Subtitulo es={la.es} ini={la.ini} fin={la.fin} frame={frame} fps={fps} centro={centro} arriba={modo === 'cocina' || modo === 'infografia' || modo === 'ficha'} top={p.fondo3d ? 400 : undefined} />}
 
       {modo !== 'cocina' && modo !== 'infografia' && modo !== 'ficha' && (
         <div style={{position: 'absolute', top: 150, width: W, textAlign: 'center', fontFamily: sans, fontWeight: 700, fontSize: 30, letterSpacing: 2, color: C.tenue}}>
