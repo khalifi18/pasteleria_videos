@@ -83,6 +83,8 @@ export function leerGuion(dir) {
   lineas.idioma = idioma;
   lineas.ingredientes = ingredientes;
   lineas.mesa = lista(cab('mesa'));
+  // truco/historia con una tarta 3D girando de fondo: # fondo3d: red-velvet
+  lineas.fondo3d = (cab('fondo3d') || '').toLowerCase().trim() || null;
   // ficha: # titulo: La tarta de | Lotus · # lema · # datos: a; b · # ingredientes grupo: a; b · # paso N: Título | texto | escena · # tarta · # foto
   {
     const t = (cab('titulo') || '').split('|').map((x) => x.trim());

@@ -55,7 +55,8 @@ export type VideoProps = {
   cocina?: DatosCocina; // formato cocina: acciones, ingredientes y piezas de la mesa
   infografia?: DatosInfografia; // formato infografía viva (su imagen)
   ficha?: DatosFicha; // formato ficha (infografía generada)
-  aviso?: string | null; // "Receta completa en la descripción": sale al principio, en la portada y en el cierre
+  aviso?: string | null;
+  fondo3d?: string | null; // truco/historia: clip de la tarta 3D girando de fondo // "Receta completa en la descripción": sale al principio, en la portada y en el cierre
   firma: string;
   cierre: string;
   finVoz: number;
@@ -227,7 +228,14 @@ export const Video: React.FC<VideoProps> = (p) => {
           })}
         </>
       ) : modo === 'hikma' ? (
-        <FondoHikma color={p.color} elemento={p.elemento} frame={frame} ocultar={arabeE} />
+        p.fondo3d ? (
+          <AbsoluteFill>
+            <OffthreadVideo src={staticFile(p.fondo3d)} muted style={{width: '100%', height: '100%', objectFit: 'cover'}} />
+            <AbsoluteFill style={{background: 'linear-gradient(180deg, rgba(30,16,10,0.72) 0%, rgba(30,16,10,0.5) 30%, rgba(30,16,10,0.2) 55%, rgba(30,16,10,0) 70%, rgba(30,16,10,0.35) 100%)'}} />
+          </AbsoluteFill>
+        ) : (
+          <FondoHikma color={p.color} elemento={p.elemento} frame={frame} ocultar={arabeE} />
+        )
       ) : modo === 'historia' && p.mundo && MUNDOS[p.mundo] ? (
         <Mundo3D nombre={p.mundo} tramos={p.tramos ?? []} />
       ) : (

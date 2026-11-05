@@ -306,6 +306,25 @@ if (props.ficha_t3d) {
   props.ficha.t3d = nombres;
 }
 delete props.ficha_t3d;
+
+// Truco/historia con tarta 3D de fondo (todo el vídeo): se genera una vez y se guarda
+if (lineas.fondo3d && (modo === 'hikma' || modo === 'pov')) {
+  const d3 = path.join(pub, 'tarta3d');
+  fs.mkdirSync(d3, {recursive: true});
+  const nombre = `tarta3d/${slug}-vertical.mp4`;
+  const huella = `${lineas.fondo3d}|${durF}|${fs.statSync(path.join(motor, 'src', 'ficha', 'Tarta3D.tsx')).mtimeMs}`;
+  const meta = path.join(d3, `${slug}-vertical.txt`);
+  if (!fs.existsSync(meta) || fs.readFileSync(meta, 'utf8') !== huella) {
+    // 720×1280 (se amplía a 1080×1920): mismo detalle detrás del texto y la mitad de tiempo
+    const ip = {tartaNombre: lineas.fondo3d, ancho: 720, alto: 1280, vista: 'vertical', frames: durF};
+    const comp = await selectComposition({serveUrl, id: 'Tarta3D', inputProps: ip, chromiumOptions, browserExecutable});
+    console.log(`Tarta 3D de fondo: generando ${durF} fotogramas (puede tardar media hora)…`);
+    await renderMedia({chromiumOptions, browserExecutable, composition: comp, serveUrl, codec: 'h264', crf: 16, outputLocation: path.join(pub, nombre), inputProps: ip, concurrency: 2});
+    fs.writeFileSync(meta, huella);
+    serveUrl = await bundle({entryPoint: path.join(motor, 'src', 'index.ts'), publicDir: pub});
+  }
+  props.fondo3d = nombre;
+}
 const composition = await selectComposition({serveUrl, id: 'Video', inputProps: props, chromiumOptions, browserExecutable});
 
 const still = async (frame, output, extra = {}, scale = 1) =>

@@ -7,6 +7,7 @@
 # pov: POV: descubres por qué la red velvet es roja
 # color: fresa
 # elemento: bizcocho
+# fondo3d: red-velvet
 La red velvet no nació roja… nació *granate*.
 *Velvet* es terciopelo: por su miga tan fina.
 El cacao natural con el suero de leche le daba un tono *rojizo*.

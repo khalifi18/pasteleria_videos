@@ -342,10 +342,11 @@ const Escena: React.FC<{tarta: Tarta; t: number}> = ({tarta, t}) => {
 };
 
 /** La tarta en 3D a pantalla completa; la cámara gira despacio a su alrededor */
-export type Vista3D = 'portada' | 'cerca';
+export type Vista3D = 'portada' | 'cerca' | 'vertical';
 const CAMARAS: Record<Vista3D, {pos: [number, number, number]; mira: [number, number, number]; fov: number}> = {
   portada: {pos: [0.4, 3.0, 4.6], mira: [0, 0.35, 0], fov: 28},
   cerca: {pos: [0.9, 1.35, 3.1], mira: [0, 0.42, 0], fov: 30}, // más baja y cerca: se ven las capas del corte
+  vertical: {pos: [0.45, 3.1, 7.4], mira: [0, 1.55, 0], fov: 33}, // pantalla completa 9:16: la tarta abajo, sitio arriba para el texto
 };
 export const Tarta3D: React.FC<{tarta?: Tarta; tartaNombre?: string; ancho?: number; alto?: number; vista?: Vista3D; frames?: number}> = ({tarta: t0, tartaNombre, ancho = 1080, alto = 1080, vista = 'portada'}) => {
   const tarta = t0 ?? TARTAS[tartaNombre ?? 'red-velvet'] ?? TARTAS['red-velvet'];
