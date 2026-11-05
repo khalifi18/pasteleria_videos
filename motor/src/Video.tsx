@@ -268,7 +268,7 @@ export const Video: React.FC<VideoProps> = (p) => {
       )}
 
       {p.portada && (
-        <div style={{position: 'absolute', top: centro ? 760 : 1060, left: 90, right: 90, height: centro ? 420 : undefined, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', fontFamily: sans, fontWeight: 800, fontSize: 84, lineHeight: 1.15, color: C.crema, textShadow: '0 4px 30px rgba(0,0,0,0.9)'}}>
+        <div style={{position: 'absolute', top: p.fondo3d ? 420 : centro ? 760 : 1060, left: 90, right: 90, height: centro ? 420 : undefined, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', fontFamily: sans, fontWeight: 800, fontSize: 84, lineHeight: 1.15, color: C.crema, textShadow: '0 4px 30px rgba(0,0,0,0.9)'}}>
           <div>
             {trozosEs(l0.es)
               .flat()
